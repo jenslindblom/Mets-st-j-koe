@@ -21,101 +21,125 @@ const getDeterministicLock = (name: string): number => {
 const buildFilePathUrl = (fileTitle: string, width = 1200) => {
   // fileTitle esim: "File:Alces alces, female, Norway.jpg"
   const fileName = fileTitle.replace(/^File:/, '');
-  // FilePath hyväksyy URL-enkoodatun tiedostonimen
   return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}?width=${width}`;
 };
 
-// --- Commons filename filtering + scoring (operate on "File:xxx.ext") ---
+// --- laatu-/relevanssisuodatus Commons-fileille ---
 
-const ALLOWED_EXT_RE = /\.(jpe?g|png|webp)$/i;
+const ALLOWED_EXT = ['.jpg', '.jpeg', '.png', '.webp'];
 
-// Things that often indicate "not a real animal photo"
-const HARD_EXCLUDE_RE =
-  /\b(svg|diagram|drawing|illustration|icon|logo|map|coat[_\s-]?of[_\s-]?arms|flag|heraldry|skull|skeleton|bones|track|tracks|footprint|pawprint|outline|silhouette|taxonomy|distribution|range|chart|graph|infographic|sign|stamp)\b/i;
+const BANNED_KEYWORDS = [
+  'svg',
+  'icon',
+  'logo',
+  'map',
+  'diagram',
+  'chart',
+  'coat of arms',
+  'symbol',
+  'flag',
+  'skull',
+  'skeleton',
+  'bones',
+  'track',
+  'tracks',
+  'scat',
+  'droppings',
+  'feather',
+  'feathers',
+  'egg',
+  'eggs',
+  'nest',
+  'nests',
+  'footprint',
+  'footprints',
+  'silhouette',
+  'drawing',
+  'illustration',
+  'painting',
+  'engraving',
+  'taxonomy',
+  'distribution',
+];
 
-// Soft negatives: can be a photo, but often not ideal
-const SOFT_NEGATIVE_RE =
-  /\b(zoo|captive|captivity|enclosure|specimen|museum|mounted|taxidermy|dead|carcass|roadkill)\b/i;
+function normalizeTitleToFileName(fileTitle: string): string {
+  return fileTitle.replace(/^File:/, '');
+}
 
-// Positives: likely a good, relevant photo
-const POSITIVE_RE =
-  /\b(portrait|close[-\s]?up|adult|juvenile|male|female|head|finland|suomi|wild|in[_\s-]?situ)\b/i;
+function hasAllowedExtension(fileName: string): boolean {
+  const lower = fileName.toLowerCase();
+  return ALLOWED_EXT.some(ext => lower.endsWith(ext));
+}
 
-const getFileNameFromTitle = (fileTitle: string) => fileTitle.replace(/^File:/, '');
+function isBannedByKeyword(fileName: string): boolean {
+  const lower = fileName.toLowerCase();
+  return BANNED_KEYWORDS.some(k => lower.includes(k));
+}
 
-const isAllowedFileTitle = (fileTitle: string) => {
-  const name = getFileNameFromTitle(fileTitle).toLowerCase();
-
-  // allow-list extensions
-  if (!ALLOWED_EXT_RE.test(name)) return false;
-
-  // hard exclude keywords
-  if (HARD_EXCLUDE_RE.test(name)) return false;
-
-  return true;
-};
-
-const scoreFileTitle = (fileTitle: string) => {
-  const name = getFileNameFromTitle(fileTitle).toLowerCase();
+/**
+ * Pisteytetään tiedostonimi:
+ * - bonukset: male/female/adult/juvenile/portrait/closeup/Finland...
+ * - miinukset: zoo/captive/specimen...
+ */
+function scoreFileName(fileName: string): number {
+  const lower = fileName.toLowerCase();
   let score = 0;
 
-  // prefer jpeg slightly
-  if (/\.(jpe?g)$/i.test(name)) score += 3;
-  if (/\.(webp)$/i.test(name)) score += 2;
-  if (/\.(png)$/i.test(name)) score += 1;
+  const good = ['male', 'female', 'adult', 'juvenile', 'in flight', 'portrait', 'closeup', 'finland', 'sweden', 'norway'];
+  for (const g of good) {
+    if (lower.includes(g)) score += 5;
+  }
 
-  // positives
-  if (POSITIVE_RE.test(name)) score += 5;
-  if (/\b(finland|suomi)\b/i.test(name)) score += 2;
-  if (/\b(portrait|close[-\s]?up|head)\b/i.test(name)) score += 2;
+  const meh = ['zoo', 'captive', 'museum', 'specimen'];
+  for (const m of meh) {
+    if (lower.includes(m)) score -= 3;
+  }
 
-  // negatives
-  if (SOFT_NEGATIVE_RE.test(name)) score -= 6;
-  if (/\b(vector|icon)\b/i.test(name)) score -= 4;
+  // pieni bonus jos nimi ei näytä satunnaiselta "IMG_1234"
+  if (!/img[_\s-]?\d+/i.test(fileName)) score += 1;
 
   return score;
-};
-
-const sortByScoreDesc = (titles: string[]) =>
-  [...titles].sort((a, b) => scoreFileTitle(b) - scoreFileTitle(a));
+}
 
 async function fetchCategoryFiles(categoryTitle: string): Promise<string[]> {
   if (categoryCache[categoryTitle]) return categoryCache[categoryTitle];
 
-  // MediaWiki API: list=categorymembers, cmtype=file
   const url =
     `https://commons.wikimedia.org/w/api.php` +
     `?action=query&format=json&origin=*` +
     `&list=categorymembers` +
     `&cmtitle=${encodeURIComponent(categoryTitle)}` +
     `&cmtype=file` +
-    `&cmlimit=450`;
+    `&cmlimit=300`;
 
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Commons API failed: ${res.status}`);
   const data = await res.json();
 
   const members: Array<{ title: string }> = data?.query?.categorymembers ?? [];
-  const rawTitles = members
+  const titles = members
     .map(m => m.title)
     .filter(t => typeof t === 'string' && t.startsWith('File:'));
 
-  // 1) hard filter by extension + keywords
-  const filtered = rawTitles.filter(isAllowedFileTitle);
+  // suodata + pisteytä
+  const filtered = titles
+    .map(t => ({ title: t, fileName: normalizeTitleToFileName(t) }))
+    .filter(x => hasAllowedExtension(x.fileName))
+    .filter(x => !isBannedByKeyword(x.fileName))
+    .map(x => ({ ...x, score: scoreFileName(x.fileName) }))
+    .sort((a, b) => b.score - a.score)
+    .map(x => x.title);
 
-  // 2) fallback: if we filtered everything away, use the original list
-  const candidateList = filtered.length > 0 ? filtered : rawTitles;
+  // jos suodatus tappaa kaiken (harvinaista), fallbackataan alkuperäisiin
+  categoryCache[categoryTitle] = filtered.length > 0 ? filtered : titles;
 
-  // 3) score + sort best first
-  const sorted = sortByScoreDesc(candidateList);
-
-  categoryCache[categoryTitle] = sorted;
-  return sorted;
+  return categoryCache[categoryTitle];
 }
 
 async function resolveSpeciesImages(species: Species): Promise<{ imageUrl?: string; fallbackImageUrl?: string }> {
-  // 1) Jos käyttäjä on antanut images[] käsin, käytetään niitä
   const lock = getDeterministicLock(species.name);
+
+  // 1) Jos käyttäjä on antanut images[] käsin, käytetään niitä
   const manual = species.images ?? [];
   if (manual.length > 0) {
     const primary = manual[lock % manual.length];
