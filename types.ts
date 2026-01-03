@@ -1,4 +1,3 @@
-
 export enum QuestionType {
   IDENTIFICATION = 'identification',
   REGULATION = 'regulation',
@@ -22,7 +21,7 @@ export interface Question {
   correctIndex: number;
   explanation: string;
   imageUrl?: string;
-  fallbackImageUrl?: string; // Varmistuskuva
+  fallbackImageUrl?: string;
   imageCaption?: string;
 }
 
@@ -41,4 +40,24 @@ export interface QuizResults {
   total: number;
   passed: boolean;
   categoryScores: Record<QuestionType, { correct: number; total: number }>;
+}
+
+export interface Species {
+  name: string;
+  latin: string;
+  en: string;
+  group: string;
+  info: string;
+
+  /**
+   * Vaihtoehto A: jos haluat joskus lukita tietyt kuvat käsin, lisää tänne suorat URLit.
+   * (Tämä ohittaa commonsCategoryn.)
+   */
+  images?: string[];
+
+  /**
+   * Vaihtoehto B (suositus): Wikimedia Commons -kategoria, josta haetaan automaattisesti kuvia.
+   * Muoto: "Category:Alces_alces"
+   */
+  commonsCategory?: string;
 }
