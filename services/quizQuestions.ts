@@ -1,11 +1,5 @@
-// src/services/quizQuestions.ts
 import { Difficulty, Question, QuestionType, Species } from '../types';
 
-/**
- * Luo yhden lajintunnistuskysymyksen per laji.
- * - 4 vaihtoehtoa: oikea + 3 harhauttajaa
- * - Suosi samaa groupia harhauttajissa, täydennä muualta jos ei riitä
- */
 export function buildIdentificationQuestions(speciesDb: Species[]): Question[] {
   const byGroup = new Map<string, Species[]>();
   for (const s of speciesDb) {
@@ -15,7 +9,6 @@ export function buildIdentificationQuestions(speciesDb: Species[]): Question[] {
 
   const pickRandomDistinct = (pool: Species[], excludeName: string, count: number): Species[] => {
     const candidates = pool.filter(x => x.name !== excludeName);
-    // shuffle
     const shuffled = [...candidates].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, count);
   };
@@ -34,7 +27,7 @@ export function buildIdentificationQuestions(speciesDb: Species[]): Question[] {
     const options = [s, ...distractors].map(x => x.name).sort(() => Math.random() - 0.5);
     const correctIndex = options.indexOf(s.name);
 
-    const q: Question = {
+    return {
       id: `id-${encodeURIComponent(s.name)}`,
       type: QuestionType.IDENTIFICATION,
       difficulty: Difficulty.NORMAL,
@@ -42,12 +35,9 @@ export function buildIdentificationQuestions(speciesDb: Species[]): Question[] {
       options,
       correctIndex,
       explanation: s.info,
-      // imageUrl/fallbackImageUrl täytetään Appissa resolveSpeciesImages:lla
       imageUrl: undefined,
       fallbackImageUrl: undefined,
       imageCaption: `${s.group}: ${s.name}`,
     };
-
-    return q;
   });
 }
