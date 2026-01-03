@@ -1,0 +1,5 @@
+{
+  "name": "Metsästäjäsimulaattori - Harjoittele metsästäjäkoetta",
+  "description": "Pedagoginen simulaattori Suomen metsästäjäkokeeseen valmistautumiseen. Sisältää lajintunnistusta, säädöksiä ja turvallisuusharjoituksia.",
+  "requestFramePermissions": []
+}
