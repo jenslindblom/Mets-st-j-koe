@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface Props {
-  src: string;
+  src?: string;
   fallback?: string;
   alt: string;
   className?: string;
@@ -48,7 +48,7 @@ function looksLikeWrongImage(url: string): boolean {
       'engraving',
       'etching',
       'plate',
-      'atlas'
+      'atlas',
     ];
 
     if (bad.some(w => norm.includes(w))) return true;
@@ -60,18 +60,38 @@ function looksLikeWrongImage(url: string): boolean {
 }
 
 const SafeImage: React.FC<Props> = ({ src, fallback, alt, className }) => {
-  const [currentSrc, setCurrentSrc] = useState(src);
+  const [currentSrc, setCurrentSrc] = useState<string>(src || '');
   const [hasFailedOnce, setHasFailedOnce] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(!!src);
 
   // Kun src muuttuu ulkopuolelta, resetoidaan tila
   useEffect(() => {
-    if (src && looksLikeWrongImage(src)) {
-      console.warn(`Rejected likely-wrong image (heuristics): ${src}`);
+    const nextSrc = src || '';
+
+    // Jos ei ole src:ää, näytä suoraan placeholder (ei spinneriä)
+    if (!nextSrc) {
+      setCurrentSrc('');
+      setHasFailedOnce(false);
+      setLoading(false);
+      return;
+    }
+
+    // Heuristinen hylkäys väärille kuville
+    if (looksLikeWrongImage(nextSrc)) {
+      console.warn(`Rejected likely-wrong image (heuristics): ${nextSrc}`);
+
       if (fallback) {
-        setCurrentSrc(fallback);
-        setHasFailedOnce(true);
-        setLoading(true);
+        // Tarkista fallback myös heuristiikalla; jos sekin näyttää huonolta -> placeholder
+        if (looksLikeWrongImage(fallback)) {
+          console.warn(`Rejected fallback (heuristics): ${fallback}`);
+          setCurrentSrc('');
+          setHasFailedOnce(true);
+          setLoading(false);
+        } else {
+          setCurrentSrc(fallback);
+          setHasFailedOnce(true);
+          setLoading(true);
+        }
       } else {
         setCurrentSrc('');
         setHasFailedOnce(true);
@@ -80,17 +100,26 @@ const SafeImage: React.FC<Props> = ({ src, fallback, alt, className }) => {
       return;
     }
 
-    setCurrentSrc(src);
+    setCurrentSrc(nextSrc);
     setHasFailedOnce(false);
     setLoading(true);
   }, [src, fallback]);
 
   const handleError = () => {
     console.warn(`Image load failed for: ${currentSrc}`);
+
     if (!hasFailedOnce && fallback) {
-      setCurrentSrc(fallback);
-      setHasFailedOnce(true);
-      setLoading(true);
+      // Vältetään myös fallbackin “selvästi väärät”
+      if (looksLikeWrongImage(fallback)) {
+        console.warn(`Rejected fallback after error (heuristics): ${fallback}`);
+        setCurrentSrc('');
+        setHasFailedOnce(true);
+        setLoading(false);
+      } else {
+        setCurrentSrc(fallback);
+        setHasFailedOnce(true);
+        setLoading(true);
+      }
     } else {
       // Ei enää satunnaisia kuvia: mieluummin rehellinen placeholder kuin väärä eläin
       setCurrentSrc('');
@@ -100,7 +129,7 @@ const SafeImage: React.FC<Props> = ({ src, fallback, alt, className }) => {
   };
 
   return (
-    <div className={`relative bg-stone-200 overflow-hidden ${className}`}>
+    <div className={`relative bg-stone-200 overflow-hidden ${className || ''}`}>
       {/* Placeholder jos kuva puuttuu tai ei lataudu */}
       {!currentSrc ? (
         <div className="w-full h-full flex items-center justify-center bg-stone-200 text-stone-600 p-6 text-center">
@@ -117,9 +146,7 @@ const SafeImage: React.FC<Props> = ({ src, fallback, alt, className }) => {
             key={currentSrc} // Pakotetaan DOM-elementin uudelleenlataus kun URL vaihtuu
             src={currentSrc}
             alt={alt}
-            className={`w-full h-full object-cover transition-opacity duration-500 ${
-              loading ? 'opacity-0' : 'opacity-100'
-            }`}
+            className={`w-full h-full object-cover transition-opacity duration-500 ${loading ? 'opacity-0' : 'opacity-100'}`}
             onLoad={() => setLoading(false)}
             onError={handleError}
           />
