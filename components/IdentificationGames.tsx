@@ -25,6 +25,60 @@ const buildFilePathUrl = (fileTitle: string, width = 1200) => {
   return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}?width=${width}`;
 };
 
+// --- Commons filename filtering + scoring (operate on "File:xxx.ext") ---
+
+const ALLOWED_EXT_RE = /\.(jpe?g|png|webp)$/i;
+
+// Things that often indicate "not a real animal photo"
+const HARD_EXCLUDE_RE =
+  /\b(svg|diagram|drawing|illustration|icon|logo|map|coat[_\s-]?of[_\s-]?arms|flag|heraldry|skull|skeleton|bones|track|tracks|footprint|pawprint|outline|silhouette|taxonomy|distribution|range|chart|graph|infographic|sign|stamp)\b/i;
+
+// Soft negatives: can be a photo, but often not ideal
+const SOFT_NEGATIVE_RE =
+  /\b(zoo|captive|captivity|enclosure|specimen|museum|mounted|taxidermy|dead|carcass|roadkill)\b/i;
+
+// Positives: likely a good, relevant photo
+const POSITIVE_RE =
+  /\b(portrait|close[-\s]?up|adult|juvenile|male|female|head|finland|suomi|wild|in[_\s-]?situ)\b/i;
+
+const getFileNameFromTitle = (fileTitle: string) => fileTitle.replace(/^File:/, '');
+
+const isAllowedFileTitle = (fileTitle: string) => {
+  const name = getFileNameFromTitle(fileTitle).toLowerCase();
+
+  // allow-list extensions
+  if (!ALLOWED_EXT_RE.test(name)) return false;
+
+  // hard exclude keywords
+  if (HARD_EXCLUDE_RE.test(name)) return false;
+
+  return true;
+};
+
+const scoreFileTitle = (fileTitle: string) => {
+  const name = getFileNameFromTitle(fileTitle).toLowerCase();
+  let score = 0;
+
+  // prefer jpeg slightly
+  if (/\.(jpe?g)$/i.test(name)) score += 3;
+  if (/\.(webp)$/i.test(name)) score += 2;
+  if (/\.(png)$/i.test(name)) score += 1;
+
+  // positives
+  if (POSITIVE_RE.test(name)) score += 5;
+  if (/\b(finland|suomi)\b/i.test(name)) score += 2;
+  if (/\b(portrait|close[-\s]?up|head)\b/i.test(name)) score += 2;
+
+  // negatives
+  if (SOFT_NEGATIVE_RE.test(name)) score -= 6;
+  if (/\b(vector|icon)\b/i.test(name)) score -= 4;
+
+  return score;
+};
+
+const sortByScoreDesc = (titles: string[]) =>
+  [...titles].sort((a, b) => scoreFileTitle(b) - scoreFileTitle(a));
+
 async function fetchCategoryFiles(categoryTitle: string): Promise<string[]> {
   if (categoryCache[categoryTitle]) return categoryCache[categoryTitle];
 
@@ -35,17 +89,28 @@ async function fetchCategoryFiles(categoryTitle: string): Promise<string[]> {
     `&list=categorymembers` +
     `&cmtitle=${encodeURIComponent(categoryTitle)}` +
     `&cmtype=file` +
-    `&cmlimit=100`;
+    `&cmlimit=450`;
 
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Commons API failed: ${res.status}`);
   const data = await res.json();
 
   const members: Array<{ title: string }> = data?.query?.categorymembers ?? [];
-  const titles = members.map(m => m.title).filter(t => typeof t === 'string' && t.startsWith('File:'));
+  const rawTitles = members
+    .map(m => m.title)
+    .filter(t => typeof t === 'string' && t.startsWith('File:'));
 
-  categoryCache[categoryTitle] = titles;
-  return titles;
+  // 1) hard filter by extension + keywords
+  const filtered = rawTitles.filter(isAllowedFileTitle);
+
+  // 2) fallback: if we filtered everything away, use the original list
+  const candidateList = filtered.length > 0 ? filtered : rawTitles;
+
+  // 3) score + sort best first
+  const sorted = sortByScoreDesc(candidateList);
+
+  categoryCache[categoryTitle] = sorted;
+  return sorted;
 }
 
 async function resolveSpeciesImages(species: Species): Promise<{ imageUrl?: string; fallbackImageUrl?: string }> {
