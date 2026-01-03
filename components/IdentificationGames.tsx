@@ -28,38 +28,80 @@ const buildFilePathUrl = (fileTitle: string, width = 1200) => {
 
 const ALLOWED_EXT = ['.jpg', '.jpeg', '.png', '.webp'];
 
+/**
+ * Tärkeä: Commonsin tiedostonimet sisältävät usein underscoreja (coat_of_arms),
+ * joten normalisoidaan _ ja - välilyönniksi ennen keyword-matchia.
+ */
+function normalizeForMatching(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 const BANNED_KEYWORDS = [
+  // formaatit / ei-kuvat
   'svg',
+  'pdf',
+
+  // yleiset "ei-toivotut"
   'icon',
   'logo',
+  'symbol',
+  'emblem',
+  'flag',
+  'coat of arms',
+  'coat_of_arms',
+  'heraldry',
+
+  // kartat ja levinneisyydet
   'map',
+  'map of',
+  'distribution',
+  'distribution map',
+  'range',
+  'range map',
+  'location map',
+  'locator',
+  'locator map',
+  'occurrence',
+
+  // kaaviot / tieteelliset kuvat / “paperimaiset”
   'diagram',
   'chart',
-  'coat of arms',
-  'symbol',
-  'flag',
+  'graph',
+  'scheme',
+  'taxonomy',
+
+  // anatomia / jäljet / ulosteet yms.
   'skull',
   'skeleton',
   'bones',
   'track',
   'tracks',
+  'footprint',
+  'footprints',
   'scat',
   'droppings',
+
+  // lintujen sulat/munat/pesät (usein väärä “tunnistettava yksilö” -kuva)
   'feather',
   'feathers',
   'egg',
   'eggs',
   'nest',
   'nests',
-  'footprint',
-  'footprints',
+
+  // taide / vanhat kuvat (tämä oli sun “kanadanmajava”-case)
   'silhouette',
   'drawing',
   'illustration',
   'painting',
   'engraving',
-  'taxonomy',
-  'distribution',
+  'etching',
+  'plate',
+  'atlas',
 ];
 
 function normalizeTitleToFileName(fileTitle: string): string {
@@ -72,30 +114,58 @@ function hasAllowedExtension(fileName: string): boolean {
 }
 
 function isBannedByKeyword(fileName: string): boolean {
-  const lower = fileName.toLowerCase();
-  return BANNED_KEYWORDS.some(k => lower.includes(k));
+  const lower = normalizeForMatching(fileName);
+  return BANNED_KEYWORDS.some(k => lower.includes(normalizeForMatching(k)));
 }
 
 /**
  * Pisteytetään tiedostonimi:
- * - bonukset: male/female/adult/juvenile/portrait/closeup/Finland...
- * - miinukset: zoo/captive/specimen...
+ * - bonuksia: “portrait/closeup/swimming/wild/Finland...”
+ * - miinuksia: zoo/captive/museum/specimen + taide/plate/engraving jne.
  */
 function scoreFileName(fileName: string): number {
-  const lower = fileName.toLowerCase();
+  const lower = normalizeForMatching(fileName);
   let score = 0;
 
-  const good = ['male', 'female', 'adult', 'juvenile', 'in flight', 'portrait', 'closeup', 'finland', 'sweden', 'norway'];
+  // Bonuksia valokuvamaisille ja “oikea eläin kuvassa” -vihjeille
+  const good = [
+    'male',
+    'female',
+    'adult',
+    'juvenile',
+    'portrait',
+    'closeup',
+    'standing',
+    'swimming',
+    'in flight',
+    'wild',
+    'finland',
+    'sweden',
+    'norway'
+  ];
   for (const g of good) {
-    if (lower.includes(g)) score += 5;
+    if (lower.includes(normalizeForMatching(g))) score += 5;
   }
 
-  const meh = ['zoo', 'captive', 'museum', 'specimen'];
-  for (const m of meh) {
-    if (lower.includes(m)) score -= 3;
+  // Miinuksia "ei se mitä halutaan"
+  const bad = [
+    'zoo',
+    'captive',
+    'museum',
+    'specimen',
+    'illustration',
+    'engraving',
+    'drawing',
+    'plate',
+    'atlas',
+    'map',
+    'distribution'
+  ];
+  for (const b of bad) {
+    if (lower.includes(normalizeForMatching(b))) score -= 7;
   }
 
-  // pieni bonus jos nimi ei näytä satunnaiselta "IMG_1234"
+  // Pieni bonus jos nimi ei näytä satunnaiselta kameradumppaukselta
   if (!/img[_\s-]?\d+/i.test(fileName)) score += 1;
 
   return score;
@@ -139,7 +209,7 @@ async function fetchCategoryFiles(categoryTitle: string): Promise<string[]> {
 async function resolveSpeciesImages(species: Species): Promise<{ imageUrl?: string; fallbackImageUrl?: string }> {
   const lock = getDeterministicLock(species.name);
 
-  // 1) Jos käyttäjä on antanut images[] käsin, käytetään niitä
+  // 1) Jos käyttäjä on antanut images[] käsin, käytetään niitä (paras laatu!)
   const manual = species.images ?? [];
   if (manual.length > 0) {
     const primary = manual[lock % manual.length];
