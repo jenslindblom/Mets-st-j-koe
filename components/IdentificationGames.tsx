@@ -19,7 +19,7 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [speedAnswers, setSpeedAnswers] = useState<(number | null)[]>([]);
   const [score, setScore] = useState(0);
   const [errors, setErrors] = useState(0);
@@ -76,7 +76,7 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
         options,
         correctIndex: options.indexOf(s.name),
         explanation: s.info,
-        imageCaption: s.name,
+        imageCaption: s.group,
       };
     });
 
@@ -90,7 +90,7 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
         setQuestions(prev => {
           const next = [...prev];
           if (next[idx]) {
-            next[idx] = { ...next[idx], imageUrl: imgRes.imageUrl, fallbackImageUrl: imgRes.fallbackImageUrl, imageCaption: s.group };
+            next[idx] = { ...next[idx], imageUrl: imgRes.imageUrl, fallbackImageUrl: imgRes.fallbackImageUrl };
           }
           return next;
         });
@@ -98,52 +98,61 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
     });
   }, [filteredSpecies]);
 
-  const handleNext = () => {
-    if (isTransitioning) return;
+  const goToNext = () => {
     if (currentIndex < questions.length - 1) {
-      if (mode === 'flashcard' && isFlipped) {
-        setIsTransitioning(true);
-        setIsFlipped(false);
-        setTimeout(() => {
-          setCurrentIndex(prev => prev + 1);
-          setIsTransitioning(false);
-        }, 400);
-      } else {
-        setCurrentIndex(prev => prev + 1);
-        setIsFlipped(false);
-      }
+      setCurrentIndex(prev => prev + 1);
+      setIsFlipped(false);
+      setIsProcessing(false);
     } else {
       setGameOverReason('complete');
       setIsGameOver(true);
     }
   };
 
+  const handleFlashcardNext = () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    if (isFlipped) {
+      setIsFlipped(false);
+      setTimeout(goToNext, 400);
+    } else {
+      goToNext();
+    }
+  };
+
   const handleSpeedAnswer = (index: number) => {
-    if (speedAnswers[currentIndex] !== null || isTransitioning) return;
+    if (isProcessing || speedAnswers[currentIndex] !== null) return;
+    
+    setIsProcessing(true);
     const currentQ = questions[currentIndex];
+    const isCorrect = index === currentQ.correctIndex;
     const correctName = currentQ.options[currentQ.correctIndex];
     const groupName = currentQ.imageCaption || 'Muut';
-    const isCorrect = index === currentQ.correctIndex;
     
-    const nextAnswers = [...speedAnswers];
-    nextAnswers[currentIndex] = index;
-    setSpeedAnswers(nextAnswers);
+    setSpeedAnswers(prev => {
+      const next = [...prev];
+      next[currentIndex] = index;
+      return next;
+    });
 
     if (isCorrect) {
       uiFeedback.playSuccess();
       setScore(prev => prev + 1);
       learningStore.recordSuccess(correctName, groupName);
-      setTimeout(handleNext, 800);
     } else {
       uiFeedback.playError();
       learningStore.recordError(correctName, groupName);
-      const newErrors = errors + 1;
-      setErrors(newErrors);
-      if (newErrors >= MAX_ERRORS) {
-        setTimeout(() => setIsGameOver(true), 800);
-      } else {
-        setTimeout(handleNext, 800);
-      }
+      setErrors(prev => {
+        const newErrors = prev + 1;
+        if (newErrors >= MAX_ERRORS) {
+          setTimeout(() => setIsGameOver(true), 800);
+        }
+        return newErrors;
+      });
+    }
+
+    if (errors + (isCorrect ? 0 : 1) < MAX_ERRORS) {
+      setTimeout(goToNext, 800);
     }
   };
 
@@ -160,6 +169,7 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
   );
 
   const current = questions[currentIndex];
+  if (!current) return null;
 
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col items-center p-4 md:p-8 animate-fade-in">
@@ -174,9 +184,9 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
 
         {mode === 'flashcard' ? (
           <div className="flex-1 flex flex-col justify-center items-center">
-            <div className={`relative w-full aspect-[4/5] max-h-[600px] cursor-pointer perspective-1000 transition-transform duration-500 preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`} onClick={() => !isTransitioning && setIsFlipped(!isFlipped)}>
+            <div className={`relative w-full aspect-[4/5] max-h-[600px] cursor-pointer perspective-1000 transition-transform duration-500 preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`} onClick={() => !isProcessing && setIsFlipped(!isFlipped)}>
               <div className="absolute inset-0 backface-hidden bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border-8 border-white"><SafeImage src={current.imageUrl} fallback={current.fallbackImageUrl} alt="Laji" className="w-full h-full" /><div className="absolute inset-0 bg-gradient-to-t from-black/60 flex items-end justify-center p-10"><p className="text-white font-black uppercase tracking-[0.2em] text-xs">Napauta kääntääksesi</p></div></div>
-              <div className="absolute inset-0 backface-hidden bg-emerald-900 rounded-[2.5rem] shadow-2xl p-10 flex flex-col items-center justify-center text-center rotate-y-180 border-8 border-emerald-800"><h2 className="text-5xl font-black text-white mb-6 tracking-tighter">{current.options[current.correctIndex]}</h2><p className="text-emerald-100/70 text-sm mb-12 italic leading-relaxed">{current.explanation}</p><button onClick={(e) => { e.stopPropagation(); handleNext(); }} className="px-12 py-5 bg-white text-emerald-900 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-transform">Seuraava</button></div>
+              <div className="absolute inset-0 backface-hidden bg-emerald-900 rounded-[2.5rem] shadow-2xl p-10 flex flex-col items-center justify-center text-center rotate-y-180 border-8 border-emerald-800"><h2 className="text-5xl font-black text-white mb-6 tracking-tighter">{current.options[current.correctIndex]}</h2><p className="text-emerald-100/70 text-sm mb-12 italic leading-relaxed">{current.explanation}</p><button onClick={(e) => { e.stopPropagation(); handleFlashcardNext(); }} className="px-12 py-5 bg-white text-emerald-900 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-transform">Seuraava</button></div>
             </div>
           </div>
         ) : (

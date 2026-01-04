@@ -9,7 +9,11 @@ interface Props {
 }
 
 const ProfileView: React.FC<Props> = ({ profile, onBack, onLogout }) => {
-  const unlockedAchievements = profile.achievements.filter(a => a.unlockedAt);
+  // Varmistetaan että taulukot ja objektit ovat olemassa
+  const achievements = profile.achievements || [];
+  const groupStats = profile.groupStats || {};
+  const unlockedAchievements = achievements.filter(a => a.unlockedAt);
+  const nickname = profile.nickname || 'Metsästäjä';
   
   return (
     <div className="min-h-screen bg-stone-50 p-6 md:p-12 animate-fade-in">
@@ -21,17 +25,17 @@ const ProfileView: React.FC<Props> = ({ profile, onBack, onLogout }) => {
               Takaisin
             </button>
             <button onClick={onLogout} className="text-rose-500 font-black flex items-center hover:text-rose-700 uppercase text-[10px] tracking-widest transition-colors">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013-3v1"/></svg>
               Kirjaudu ulos
             </button>
           </div>
           <div className="flex items-center space-x-6">
              <div className="text-right">
-                <h2 className="text-3xl font-black text-emerald-900 leading-none">{profile.nickname}</h2>
-                <p className="text-stone-400 text-xs font-black uppercase tracking-widest mt-1">Taso {profile.level} Riistanhoitaja</p>
+                <h2 className="text-3xl font-black text-emerald-900 leading-none">{nickname}</h2>
+                <p className="text-stone-400 text-xs font-black uppercase tracking-widest mt-1">Taso {profile.level || 1} Riistanhoitaja</p>
              </div>
              <div className="w-16 h-16 bg-emerald-700 text-white rounded-2xl flex items-center justify-center text-2xl font-black shadow-lg">
-                {profile.nickname[0].toUpperCase()}
+                {nickname[0]?.toUpperCase()}
              </div>
           </div>
         </header>
@@ -44,9 +48,9 @@ const ProfileView: React.FC<Props> = ({ profile, onBack, onLogout }) => {
               <span className="text-2xl">🗺️</span>
             </div>
             <div className="space-y-6">
-              {Object.keys(profile.groupStats).length > 0 ? (
-                Object.entries(profile.groupStats).map(([group, stats]) => {
-                  const percentage = Math.round((stats.correct / stats.total) * 100);
+              {Object.keys(groupStats).length > 0 ? (
+                Object.entries(groupStats).map(([group, stats]) => {
+                  const percentage = Math.round((stats.correct / stats.total) * 100) || 0;
                   return (
                     <div key={group} className="space-y-2">
                       <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
@@ -76,7 +80,7 @@ const ProfileView: React.FC<Props> = ({ profile, onBack, onLogout }) => {
           <div className="bg-emerald-900 rounded-[3rem] shadow-xl p-8 md:p-10 text-white">
             <h3 className="text-xl font-black uppercase tracking-tight mb-8">Saavutukset</h3>
             <div className="space-y-4">
-              {profile.achievements.map(ach => (
+              {achievements.length > 0 ? achievements.map(ach => (
                 <div key={ach.id} className={`flex items-center space-x-4 p-4 rounded-2xl border-2 transition-all ${ach.unlockedAt ? 'bg-white/10 border-white/20' : 'opacity-30 border-white/5 grayscale'}`}>
                   <div className="text-2xl">{ach.icon}</div>
                   <div>
@@ -85,7 +89,9 @@ const ProfileView: React.FC<Props> = ({ profile, onBack, onLogout }) => {
                     {ach.unlockedAt && <p className="text-[8px] text-emerald-400 mt-1 font-black uppercase">Avattu!</p>}
                   </div>
                 </div>
-              ))}
+              )) : (
+                <p className="text-center opacity-50 italic text-xs">Ei saavutuksia listattuna.</p>
+              )}
             </div>
           </div>
         </div>
@@ -94,8 +100,8 @@ const ProfileView: React.FC<Props> = ({ profile, onBack, onLogout }) => {
            <div className="flex items-center space-x-6">
               <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center text-3xl">✨</div>
               <div>
-                <h4 className="font-black text-emerald-900 text-lg">XP: {profile.totalPoints.toLocaleString()}</h4>
-                <p className="text-stone-400 text-xs font-bold uppercase tracking-widest">Taso {profile.level}</p>
+                <h4 className="font-black text-emerald-900 text-lg">XP: {(profile.totalPoints || 0).toLocaleString()}</h4>
+                <p className="text-stone-400 text-xs font-bold uppercase tracking-widest">Taso {profile.level || 1}</p>
               </div>
            </div>
            <div className="flex -space-x-2">
