@@ -31,14 +31,14 @@ const ProfileSetup: React.FC<Props> = ({ onComplete }) => {
   };
 
   return (
-    <div className="min-h-screen bg-emerald-950 flex items-center justify-center p-6 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-900 to-emerald-950">
-      <div className="max-w-md w-full bg-white rounded-[3rem] shadow-2xl p-10 animate-scale-up border border-white/20">
+    <div className="min-h-screen bg-emerald-950 flex items-center justify-center p-4 md:p-6 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-900 to-emerald-950">
+      <div className="max-w-md w-full bg-white rounded-[3rem] shadow-2xl p-8 md:p-10 animate-scale-up border border-white/20">
         <div className="text-center mb-8">
-          <div className="w-24 h-24 bg-emerald-100 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-inner">
-            <span className="text-5xl">🦌</span>
+          <div className="w-20 h-20 md:w-24 md:h-24 bg-emerald-100 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-inner">
+            <span className="text-4xl md:text-5xl">🦌</span>
           </div>
-          <h2 className="text-3xl font-black text-gray-900 font-serif leading-tight">Metsästäjäsimulaattori</h2>
-          <p className="text-gray-500 mt-2 font-medium">Kuka lähtee tänään jahtiin?</p>
+          <h2 className="text-2xl md:text-3xl font-black text-stone-900 font-serif leading-tight">Metsästäjäsimulaattori</h2>
+          <p className="text-stone-500 mt-2 font-medium">Kuka lähtee tänään jahtiin?</p>
         </div>
 
         {existingProfiles.length > 0 && !showCreate ? (
@@ -48,14 +48,14 @@ const ProfileSetup: React.FC<Props> = ({ onComplete }) => {
                 <button
                   key={p.nickname}
                   onClick={() => handleSelect(p.nickname)}
-                  className="w-full p-5 bg-stone-50 border-2 border-stone-100 rounded-2xl flex items-center justify-between hover:border-emerald-500 transition-all group active:scale-95"
+                  className="w-full p-4 md:p-5 bg-stone-50 border-2 border-stone-100 rounded-2xl flex items-center justify-between hover:border-emerald-500 transition-all group active:scale-95"
                 >
                   <div className="flex items-center space-x-4">
                     <div className="w-10 h-10 bg-emerald-700 text-white rounded-xl flex items-center justify-center font-bold">
                       {p.nickname[0].toUpperCase()}
                     </div>
                     <div className="text-left">
-                      <p className="font-bold text-gray-900">{p.nickname}</p>
+                      <p className="font-bold text-stone-900">{p.nickname}</p>
                       <p className="text-[10px] text-stone-400 uppercase font-bold tracking-tighter">{p.totalPoints} XP kerätty</p>
                     </div>
                   </div>
@@ -65,7 +65,7 @@ const ProfileSetup: React.FC<Props> = ({ onComplete }) => {
             </div>
             <button
               onClick={() => setShowCreate(true)}
-              className="w-full py-4 border-2 border-dashed border-stone-200 text-stone-400 rounded-2xl font-bold hover:border-emerald-300 hover:text-emerald-600 transition-all"
+              className="w-full py-4 border-2 border-dashed border-stone-200 text-stone-500 rounded-2xl font-bold hover:border-emerald-300 hover:text-emerald-600 transition-all text-sm"
             >
               + Luo uusi profiili
             </button>
@@ -80,7 +80,7 @@ const ProfileSetup: React.FC<Props> = ({ onComplete }) => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Nimimerkkisi"
-                className="w-full px-6 py-5 bg-stone-50 border-2 border-stone-100 rounded-2xl focus:border-emerald-500 focus:outline-none text-xl font-bold transition-all text-center"
+                className="w-full px-6 py-5 bg-stone-50 border-2 border-stone-100 rounded-2xl focus:border-emerald-500 focus:outline-none text-xl font-bold transition-all text-center text-stone-900 placeholder:text-stone-300"
                 maxLength={15}
               />
             </div>
