@@ -6,6 +6,9 @@ import QuestionDisplay from './components/QuestionDisplay';
 import FeedbackModal from './components/FeedbackModal';
 import IdentificationGames from './components/IdentificationGames';
 import MatchingGame from './components/MatchingGame';
+import { resolveSpeciesImages } from './services/commonsImages';
+import { uiFeedback } from './services/uiFeedbackService';
+import { learningStore } from './services/learningStore';
 
 const App: React.FC = () => {
   const [state, setState] = useState<QuizState>({
@@ -24,6 +27,35 @@ const App: React.FC = () => {
   const [gameMode, setGameMode] = useState<'flashcard' | 'speed' | 'matching'>('flashcard');
   const [selectedGroups, setSelectedGroups] = useState<string[]>(allGroups);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+
+  // Tehostettu Prefetching: ladataan kuvat taustalle prioritoiden vaikeita lajeja
+  useEffect(() => {
+    if (view === 'game-select') {
+      const prefetch = async () => {
+        // Valitaan lajit learningStoren painotusten mukaan
+        const speciesToLoad = SPECIES_DB
+          .filter(s => selectedGroups.includes(s.group))
+          .sort((a, b) => learningStore.getPriorityWeight(b.name) - learningStore.getPriorityWeight(a.name))
+          .slice(0, 20); // Ladataan 20 tärkeintä kuvaa
+
+        // Ladataan rinnakkain pienissä erissä (ei tukita verkkoa)
+        const batchSize = 5;
+        for (let i = 0; i < speciesToLoad.length; i += batchSize) {
+          const batch = speciesToLoad.slice(i, i + batchSize);
+          await Promise.all(batch.map(async (s) => {
+            try {
+              const { imageUrl } = await resolveSpeciesImages(s, 800);
+              if (imageUrl) {
+                const img = new Image();
+                img.src = imageUrl;
+              }
+            } catch (e) { /* ignore */ }
+          }));
+        }
+      };
+      prefetch();
+    }
+  }, [view, selectedGroups]);
 
   const startQuiz = (examMode: boolean) => {
     let selectedQuestions: Question[] = [];
@@ -93,15 +125,21 @@ const App: React.FC = () => {
   }, [state.isExamMode, state.timeLeft, state.isFinished]);
 
   const selectAnswer = (index: number) => {
+    const currentQ = state.questions[state.currentQuestionIndex];
+    const isCorrect = index === currentQ.correctIndex;
+
+    // Äänipalaute harjoittelutilassa
+    if (!state.isExamMode) {
+      if (isCorrect) uiFeedback.playSuccess();
+      else uiFeedback.playError();
+      setShowFeedbackModal(true);
+    }
+
     setState(prev => {
       const newAnswers = [...prev.userAnswers];
       newAnswers[prev.currentQuestionIndex] = index;
       return { ...prev, userAnswers: newAnswers };
     });
-
-    if (!state.isExamMode) {
-      setShowFeedbackModal(true);
-    }
   };
 
   const nextQuestion = () => {
@@ -248,9 +286,6 @@ const App: React.FC = () => {
                 </button>
               ))}
             </div>
-            {selectedGroups.length === 0 && (
-              <p className="mt-4 text-rose-500 text-xs font-bold animate-pulse uppercase tracking-widest">Valitse vähintään yksi ryhmä jatkaaksesi</p>
-            )}
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -279,7 +314,7 @@ const App: React.FC = () => {
             >
               <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">🧩</div>
               <h3 className="text-xl font-bold text-emerald-900 mb-2">Yhdistely</h3>
-              <p className="text-xs text-stone-500">Vedä nimet kuviin.</p>
+              <p className="text-xs text-stone-500">Yhdistä nimet kuviin.</p>
             </button>
           </div>
         </div>
@@ -300,58 +335,29 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-stone-50 p-6 flex flex-col items-center animate-fade-in">
         <div className="max-w-4xl w-full bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-stone-100">
           <div className={`p-12 text-center text-white ${results.passed ? 'bg-emerald-600' : 'bg-rose-600'} transition-colors duration-500`}>
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
-              {results.passed ? (
-                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                </svg>
-              ) : (
-                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              )}
-            </div>
             <h2 className="text-5xl font-bold mb-4">{results.passed ? 'Onneksi olkoon!' : 'Lisää harjoittelua kaivataan'}</h2>
-            <p className="text-2xl opacity-90 font-medium">
-              Tuloksesi: <span className="font-bold underline decoration-white/40">{results.score} / {results.total}</span>
-            </p>
-            <p className="mt-4 text-sm font-bold uppercase tracking-widest bg-black/10 px-4 py-1 rounded-full inline-block">
-              Raja: {PASS_MARK} / {EXAM_QUESTION_COUNT}
-            </p>
+            <p className="text-2xl opacity-90 font-medium">Tuloksesi: {results.score} / {results.total}</p>
           </div>
-
           <div className="p-10 grid md:grid-cols-2 gap-10">
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-8 flex items-center">📊 Osaamisalueet</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-8">📊 Osaamisalueet</h3>
               <div className="space-y-6">
                 {Object.entries(results.categoryScores).map(([category, stats]: [any, any]) => (
-                  <div key={category} className="group">
+                  <div key={category}>
                     <div className="flex justify-between text-xs mb-2 uppercase font-bold text-stone-500 tracking-tighter">
                       <span>{category.replace('_', ' ')}</span>
                       <span>{stats.correct} / {stats.total}</span>
                     </div>
                     <div className="w-full bg-stone-100 rounded-full h-3 overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                          stats.correct / (stats.total || 1) >= 0.75 ? 'bg-emerald-500' : 'bg-rose-400'
-                        }`}
-                        style={{ width: `${(stats.correct / (stats.total || 1)) * 100}%` }}
-                      ></div>
+                      <div className={`h-full rounded-full transition-all duration-1000 ease-out ${stats.correct / (stats.total || 1) >= 0.75 ? 'bg-emerald-500' : 'bg-rose-400'}`} style={{ width: `${(stats.correct / (stats.total || 1)) * 100}%` }}></div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-
-            <div className="flex flex-col justify-between">
-              <div className="bg-stone-50 p-8 rounded-3xl border border-stone-100 relative italic text-stone-600 leading-relaxed">
-                <span className="absolute -top-4 left-6 text-6xl text-stone-200 font-serif leading-none">“</span>
-                Metsästyskokeen läpäisy on vasta alkua. Todellinen koe tapahtuu joka kerta kun astut metsään.
-              </div>
-              <div className="flex flex-col space-y-3 mt-8">
-                <button onClick={() => startQuiz(state.isExamMode)} className="w-full py-4 bg-emerald-800 text-white rounded-2xl font-bold hover:bg-emerald-900 transition-all shadow-lg">Yritä uudelleen</button>
-                <button onClick={() => setView('home')} className="w-full py-4 bg-stone-100 text-stone-600 rounded-2xl font-bold hover:bg-stone-200 transition-all">Palaa pääsivulle</button>
-              </div>
+            <div className="flex flex-col justify-end space-y-3">
+              <button onClick={() => startQuiz(state.isExamMode)} className="w-full py-4 bg-emerald-800 text-white rounded-2xl font-bold hover:bg-emerald-900 transition-all shadow-lg">Yritä uudelleen</button>
+              <button onClick={() => setView('home')} className="w-full py-4 bg-stone-100 text-stone-600 rounded-2xl font-bold hover:bg-stone-200 transition-all">Palaa pääsivulle</button>
             </div>
           </div>
         </div>
@@ -384,7 +390,7 @@ const App: React.FC = () => {
           </div>
           <div className="flex items-center space-x-8">
             {state.timeLeft !== null && (
-              <div className="flex items-center space-x-3 bg-black/20 px-4 py-2 rounded-xl border border-white/10">
+              <div className="bg-black/20 px-4 py-2 rounded-xl border border-white/10">
                 <span className="font-mono text-xl font-bold tabular-nums tracking-tight">{formatTime(state.timeLeft)}</span>
               </div>
             )}

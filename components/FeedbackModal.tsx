@@ -22,7 +22,8 @@ const FeedbackModal: React.FC<Props> = ({ question, selectedAnswer, onNext, onCl
       const text = await getDeepExplanation(
         question.question,
         question.options[selectedAnswer],
-        question.options[question.correctIndex]
+        question.options[question.correctIndex],
+        question.explanation // Lähetetään lajitieto mukaan
       );
       setAiExplanation(text);
       setLoadingAi(false);
