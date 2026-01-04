@@ -5,25 +5,32 @@ import { UserProfile } from '../types';
 interface Props {
   profile: UserProfile;
   onBack: () => void;
+  onLogout: () => void;
 }
 
-const ProfileView: React.FC<Props> = ({ profile, onBack }) => {
+const ProfileView: React.FC<Props> = ({ profile, onBack, onLogout }) => {
   const unlockedAchievements = profile.achievements.filter(a => a.unlockedAt);
   
   return (
     <div className="min-h-screen bg-stone-50 p-6 md:p-12 animate-fade-in">
       <div className="max-w-5xl mx-auto space-y-8">
         <header className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <button onClick={onBack} className="text-emerald-800 font-black flex items-center hover:underline uppercase text-[10px] tracking-widest">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"/></svg>
-            Takaisin
-          </button>
+          <div className="flex space-x-6 self-start md:self-center">
+            <button onClick={onBack} className="text-emerald-800 font-black flex items-center hover:underline uppercase text-[10px] tracking-widest">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"/></svg>
+              Takaisin
+            </button>
+            <button onClick={onLogout} className="text-rose-500 font-black flex items-center hover:text-rose-700 uppercase text-[10px] tracking-widest transition-colors">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+              Kirjaudu ulos
+            </button>
+          </div>
           <div className="flex items-center space-x-6">
              <div className="text-right">
                 <h2 className="text-3xl font-black text-emerald-900 leading-none">{profile.nickname}</h2>
                 <p className="text-stone-400 text-xs font-black uppercase tracking-widest mt-1">Taso {profile.level} Riistanhoitaja</p>
              </div>
-             <div className="w-16 h-16 bg-emerald-700 text-white rounded-2xl flex items-center justify-center text-2xl font-black">
+             <div className="w-16 h-16 bg-emerald-700 text-white rounded-2xl flex items-center justify-center text-2xl font-black shadow-lg">
                 {profile.nickname[0].toUpperCase()}
              </div>
           </div>
@@ -88,7 +95,7 @@ const ProfileView: React.FC<Props> = ({ profile, onBack }) => {
               <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center text-3xl">✨</div>
               <div>
                 <h4 className="font-black text-emerald-900 text-lg">XP: {profile.totalPoints.toLocaleString()}</h4>
-                <p className="text-stone-400 text-xs font-bold uppercase tracking-widest">Seuraavalle tasolle: {((profile.level * 100) - (profile.totalPoints % (profile.level * 100))).toLocaleString()} XP</p>
+                <p className="text-stone-400 text-xs font-bold uppercase tracking-widest">Taso {profile.level}</p>
               </div>
            </div>
            <div className="flex -space-x-2">

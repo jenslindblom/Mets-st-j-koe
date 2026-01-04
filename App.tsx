@@ -122,9 +122,15 @@ const App: React.FC = () => {
     setView('results');
   };
 
+  const handleLogout = () => {
+    learningStore.logout();
+    setData({ profile: null });
+    setView('home');
+  };
+
   if (!data.profile) return <ProfileSetup onComplete={() => setData(learningStore.getData())} />;
   if (view === 'leaderboard') return <Leaderboard onBack={() => setView('home')} />;
-  if (view === 'profile' && data.profile) return <ProfileView profile={data.profile} onBack={() => setView('home')} />;
+  if (view === 'profile' && data.profile) return <ProfileView profile={data.profile} onBack={() => setView('home')} onLogout={handleLogout} />;
 
   if (view === 'home') {
     return (
@@ -141,8 +147,8 @@ const App: React.FC = () => {
                 <button onClick={() => setView('profile')} className="text-[11px] text-emerald-600 font-black hover:text-emerald-800 uppercase tracking-[0.2em] transition-colors">
                   Minun profiili
                 </button>
-                <button onClick={() => { learningStore.logout(); setData({ profile: null }); }} className="text-[11px] text-stone-400 font-black hover:text-emerald-700 uppercase tracking-[0.2em] transition-colors">
-                  Vaihda käyttäjää
+                <button onClick={handleLogout} className="text-[11px] text-rose-500 font-black hover:text-rose-700 uppercase tracking-[0.2em] transition-colors">
+                  Kirjaudu ulos
                 </button>
               </div>
             </div>
