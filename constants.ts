@@ -8,95 +8,147 @@ export const SPECIES_DB: Species[] = [
   // =========================
   // HIRVIELÄIMET / SORKKAELÄIMET
   // =========================
-  { name: 'Hirvi', latin: 'Alces alces', en: 'moose', group: 'Hirvieläimet', info: 'Suomen suurin nisäkäs. Tunnista koosta, kyhmyisestä turvasta ja vaaleista jaloista.', commonsCategory: 'Category:Alces_alces' },
-  { name: 'Valkohäntäpeura', latin: 'Odocoileus virginianus', en: 'white-tailed deer', group: 'Hirvieläimet', info: 'Tunnista pystyyn nousevasta, alta lumivalkoisesta hännästä.', commonsCategory: 'Category:Odocoileus_virginianus' },
-  { name: 'Metsäkauris', latin: 'Capreolus capreolus', en: 'roe deer', group: 'Hirvieläimet', info: 'Pieni koko, ei häntää, valkoinen peräpeili. Lyhyet pystyt sarvet.', commonsCategory: 'Category:Capreolus_capreolus' },
-  { name: 'Metsäpeura', latin: 'Rangifer tarandus fennicus', en: 'Finnish forest reindeer', group: 'Hirvieläimet', info: 'Siro ja pitkäjalkainen verrattuna poroon. Sarvet kapeat.', commonsCategory: 'Category:Rangifer_tarandus_fennicus' },
-  { name: 'Kuusipeura', latin: 'Dama dama', en: 'fallow deer', group: 'Hirvieläimet', info: 'Täplikäs turkki, lapiomaiset sarvet.', commonsCategory: 'Category:Dama_dama' },
-  { name: 'Villisika', latin: 'Sus scrofa', en: 'wild boar', group: 'Hirvieläimet', info: 'Tunnista jykevästä rungosta, kärsästä ja usein tummasta harjaksesta.', commonsCategory: 'Category:Sus_scrofa' },
-
-  { name: 'Saksanhirvi', latin: 'Cervus elaphus', en: 'red deer', group: 'Hirvieläimet', info: 'Suuri hirvieläin. Uroksella monihaaraiset sarvet (”kruunu”).', commonsCategory: 'Category:Cervus_elaphus' },
-  { name: 'Japaninpeura', latin: 'Cervus nippon', en: 'sika deer', group: 'Hirvieläimet', info: 'Keskikokoinen peura. Usein täpläinen turkki ja vaalea peräpeili.', commonsCategory: 'Category:Cervus_nippon' },
-  { name: 'Mufloni', latin: 'Ovis orientalis musimon', en: 'mouflon', group: 'Hirvieläimet', info: 'Villilampaan tyyppinen. Uroksella voimakkaasti kiertyneet sarvet.', commonsCategory: 'Category:Ovis_orientalis_musimon' },
-
-  // =========================
-  // JÄNISELÄIMET & JYRSIJÄT
-  // =========================
-  { name: 'Villikani', latin: 'Oryctolagus cuniculus', en: 'European rabbit', group: 'Jäniseläimet & jyrsijät', info: 'Kani on yleensä pienempi ja pyöreämpi kuin jänikset. Korvat suhteessa lyhyemmät.', commonsCategory: 'Category:Oryctolagus_cuniculus' },
-  { name: 'Metsäjänis', latin: 'Lepus timidus', en: 'mountain hare', group: 'Jäniseläimet & jyrsijät', info: 'Talviturkki vaalenee/valkenee. Korvan kärjet usein tummat. Suomessa yleinen.', commonsCategory: 'Category:Lepus_timidus' },
-  { name: 'Rusakko', latin: 'Lepus europaeus', en: 'brown hare', group: 'Jäniseläimet & jyrsijät', info: 'Isompi ja pitkäkorvaisempi kuin metsäjänis. Talvella yleensä ruskea.', commonsCategory: 'Category:Lepus_europaeus' },
-  { name: 'Orava', latin: 'Sciurus vulgaris', en: 'red squirrel', group: 'Jäniseläimet & jyrsijät', info: 'Tunnista tuuheasta hännästä ja usein korvatupsuista. Väritys vaihtelee.', commonsCategory: 'Category:Sciurus_vulgaris' },
-  { name: 'Euroopanmajava', latin: 'Castor fiber', en: 'Eurasian beaver', group: 'Jäniseläimet & jyrsijät', info: 'Iso jyrsijä. Tunnista leveästä, litteästä hännästä ja patoamisesta.', commonsCategory: 'Category:Castor_fiber' },
-  { name: 'Kanadanmajava', latin: 'Castor canadensis', en: 'North American beaver', group: 'Jäniseläimet & jyrsijät', info: 'Majava kuten euroopanmajava, mutta laji eri.', commonsCategory: 'Category:Castor_canadensis' },
-  { name: 'Piisami', latin: 'Ondatra zibethicus', en: 'muskrat', group: 'Jäniseläimet & jyrsijät', info: 'Vesistöjen jyrsijä. Pitkä, sivuilta litteä häntä.', commonsCategory: 'Category:Ondatra_zibethicus' },
-  { name: 'Rämemajava', latin: 'Myocastor coypus', en: 'coypu (nutria)', group: 'Jäniseläimet & jyrsijät', info: 'Iso vesijyrsijä. Usein oranssit etuhampaat.', commonsCategory: 'Category:Myocastor_coypus' },
-
-  // =========================
-  // METSÄKANALINNUT
-  // =========================
-  { name: 'Metso', latin: 'Tetrao urogallus', en: 'capercaillie', group: 'Metsäkanalinnut', info: 'Uros on suuri ja musta, naaras ruskeankirjava.', commonsCategory: 'Category:Tetrao_urogallus' },
-  { name: 'Teeri', latin: 'Lyrurus tetrix', en: 'black grouse', group: 'Metsäkanalinnut', info: 'Uroksella lyyrapyrstö.', commonsCategory: 'Category:Lyrurus_tetrix' },
-  { name: 'Pyy', latin: 'Tetrastes bonasia', en: 'hazel grouse', group: 'Metsäkanalinnut', info: 'Pieni, harmaankirjava.', commonsCategory: 'Category:Tetrastes_bonasia' },
-  { name: 'Riekko', latin: 'Lagopus lagopus', en: 'willow ptarmigan', group: 'Metsäkanalinnut', info: 'Talvella valkoinen.', commonsCategory: 'Category:Lagopus_lagopus' },
-  { name: 'Kiiruna', latin: 'Lagopus muta', en: 'rock ptarmigan', group: 'Metsäkanalinnut', info: 'Tunturialueiden laji.', commonsCategory: 'Category:Lagopus_muta' },
-  { name: 'Peltopyy', latin: 'Perdix perdix', en: 'grey partridge', group: 'Metsäkanalinnut', info: 'Peltomaisemien kanalintu.', commonsCategory: 'Category:Perdix_perdix' },
-  { name: 'Fasaani', latin: 'Phasianus colchicus', en: 'common pheasant', group: 'Metsäkanalinnut', info: 'Uroksella näyttävä väritys.', commonsCategory: 'Category:Phasianus_colchicus' },
-
-  // =========================
-  // VESILINNUT
-  // =========================
-  { name: 'Heinäsorsa', latin: 'Anas platyrhynchos', en: 'mallard', group: 'Vesilinnut', info: 'Yleisin sorsa.', commonsCategory: 'Category:Anas_platyrhynchos' },
-  { name: 'Tavi', latin: 'Anas crecca', en: 'common teal', group: 'Vesilinnut', info: 'Pienikokoinen sorsa.', commonsCategory: 'Category:Anas_crecca' },
-  { name: 'Heinätavi', latin: 'Spatula querquedula', en: 'garganey', group: 'Vesilinnut', info: 'Vaalea kulmakarvajuova.', commonsCategory: 'Category:Spatula_querquedula' },
-  { name: 'Haapana', latin: 'Mareca penelope', en: 'Eurasian wigeon', group: 'Vesilinnut', info: 'Punaruskea pää.', commonsCategory: 'Category:Mareca_penelope' },
-  { name: 'Jouhisorsa', latin: 'Anas acuta', en: 'northern pintail', group: 'Vesilinnut', info: 'Pitkä pyrstö.', commonsCategory: 'Category:Anas_acuta' },
-  { name: 'Lapasorsa', latin: 'Spatula clypeata', en: 'northern shoveler', group: 'Vesilinnut', info: 'Lusikkamainen nokka.', commonsCategory: 'Category:Spatula_clypeata' },
-  { name: 'Punasotka', latin: 'Aythya ferina', en: 'common pochard', group: 'Vesilinnut', info: 'Sukeltajasorsa.', commonsCategory: 'Category:Aythya_ferina' },
-  { name: 'Tukkasotka', latin: 'Aythya fuligula', en: 'tufted duck', group: 'Vesilinnut', info: 'Päässä töyhtö.', commonsCategory: 'Category:Aythya_fuligula' },
-  { name: 'Telkkä', latin: 'Bucephala clangula', en: 'common goldeneye', group: 'Vesilinnut', info: 'Valkoinen poskilaikku.', commonsCategory: 'Category:Bucephala_clangula' },
-  { name: 'Haahka', latin: 'Somateria mollissima', en: 'common eider', group: 'Vesilinnut', info: 'Suuri merisorsa.', commonsCategory: 'Category:Somateria_mollissima' },
-  { name: 'Alli', latin: 'Clangula hyemalis', en: 'long-tailed duck', group: 'Vesilinnut', info: 'Pitkä pyrstö.', commonsCategory: 'Category:Clangula_hyemalis' },
-  { name: 'Isokoskelo', latin: 'Mergus merganser', en: 'goosander', group: 'Vesilinnut', info: 'Pitkä punainen nokka.', commonsCategory: 'Category:Mergus_merganser' },
-  { name: 'Tukkakoskelo', latin: 'Mergus serrator', en: 'red-breasted merganser', group: 'Vesilinnut', info: 'Töyhtöinen.', commonsCategory: 'Category:Mergus_serrator' },
-  { name: 'Metsähanhi', latin: 'Anser fabalis', en: 'bean goose', group: 'Vesilinnut', info: 'Musta-oranssi nokka.', commonsCategory: 'Category:Anser_fabalis' },
-  { name: 'Merihanhi', latin: 'Anser anser', en: 'greylag goose', group: 'Vesilinnut', info: 'Oranssi nokka.', commonsCategory: 'Category:Anser_anser' },
-  { name: 'Kanadanhanhi', latin: 'Branta canadensis', en: 'Canada goose', group: 'Vesilinnut', info: 'Musta kaula.', commonsCategory: 'Category:Branta_canadensis' },
-
-  // =========================
-  // PIENPEDOT
-  // =========================
-  { name: 'Kettu', latin: 'Vulpes vulpes', en: 'red fox', group: 'Pienpedot', info: 'Punainen turkki.', commonsCategory: 'Category:Vulpes_vulpes' },
-  { name: 'Supikoira', latin: 'Nyctereutes procyonoides', en: 'raccoon dog', group: 'Pienpedot', info: 'Musta naamarikuvio.', commonsCategory: 'Category:Nyctereutes_procyonoides' },
-  { name: 'Mäyrä', latin: 'Meles meles', en: 'European badger', group: 'Pienpedot', info: 'Valkoiset juovat.', commonsCategory: 'Category:Meles_meles' },
-  { name: 'Näätä', latin: 'Martes martes', en: 'pine marten', group: 'Pienpedot', info: 'Keltainen kurkkulaikku.', commonsCategory: 'Category:Martes_martes' },
-  { name: 'Minkki', latin: 'Neovison vison', en: 'American mink', group: 'Pienpedot', info: 'Tumma turkki.', commonsCategory: 'Category:Neovison_vison' },
-  { name: 'Pesukarhu', latin: 'Procyon lotor', en: 'raccoon', group: 'Pienpedot', info: 'Naamio kasvoissa.', commonsCategory: 'Category:Procyon_lotor' },
-  { name: 'Kärppä', latin: 'Mustela erminea', en: 'stoat', group: 'Pienpedot', info: 'Musta hännänpää.', commonsCategory: 'Category:Mustela_erminea' },
-  { name: 'Hilleri', latin: 'Mustela putorius', en: 'European polecat', group: 'Pienpedot', info: 'Vaalea kuono.', commonsCategory: 'Category:Mustela_putorius' },
-  { name: 'Saukko', latin: 'Lutra lutra', en: 'Eurasian otter', group: 'Pienpedot', info: 'Virtaviivainen.', commonsCategory: 'Category:Lutra_lutra' },
-
-  // =========================
-  // SUURPEDOT
-  // =========================
-  { name: 'Susi', latin: 'Canis lupus', en: 'wolf', group: 'Suurpedot', info: 'Koiramainen.', commonsCategory: 'Category:Canis_lupus' },
-  { name: 'Tarhattu naali', latin: 'Vulpes lagopus', en: 'Arctic fox', group: 'Suurpedot', info: 'Pienikokoinen.', commonsCategory: 'Category:Vulpes_lagopus' },
-  { name: 'Karhu', latin: 'Ursus arctos', en: 'brown bear', group: 'Suurpedot', info: 'Massiivinen.', commonsCategory: 'Category:Ursus_arctos' },
-  { name: 'Ahma', latin: 'Gulo gulo', en: 'wolverine', group: 'Suurpedot', info: 'Jykevä.', commonsCategory: 'Category:Gulo_gulo' },
-  { name: 'Ilves', latin: 'Lynx lynx', en: 'Eurasian lynx', group: 'Suurpedot', info: 'Korvatupsut.', commonsCategory: 'Category:Lynx_lynx' },
-
-  // =========================
-  // HYLKEET
-  // =========================
-  { name: 'Itämeren norppa', latin: 'Pusa hispida botnica', en: 'Baltic ringed seal', group: 'Hylkeet', info: 'Pieni hylje.', commonsCategory: 'Category:Pusa_hispida_botnica' },
-  { name: 'Kirjohylje', latin: 'Phoca vitulina', en: 'harbour seal', group: 'Hylkeet', info: 'Täpläinen.', commonsCategory: 'Category:Phoca_vitulina' },
-  { name: 'Halli', latin: 'Halichoerus grypus', en: 'grey seal', group: 'Hylkeet', info: 'Pitkä kuono.', commonsCategory: 'Category:Halichoerus_grypus' },
-
-  // =========================
-  // MUUT RIISTALINNUT
-  // =========================
-  { name: 'Sepelkyyhky', latin: 'Columba palumbus', en: 'common wood pigeon', group: 'Muut riistalinnut', info: 'Valkoinen kaulalaikku.', commonsCategory: 'Category:Columba_palumbus' },
-  { name: 'Nokikana', latin: 'Fulica atra', en: 'Eurasian coot', group: 'Muut riistalinnut', info: 'Valkoinen otsakilpi.', commonsCategory: 'Category:Fulica_atra' },
-  { name: 'Lehtokurppa', latin: 'Scolopax rusticola', en: 'Eurasian woodcock', group: 'Muut riistalinnut', info: 'Pitkä nokka.', commonsCategory: 'Category:Scolopax_rusticola' },
+ -  { name: 'Hirvi', latin: 'Alces alces', en: 'moose', group: 'Hirvieläimet', info: 'Suomen suurin nisäkäs. Tunnista koosta, kyhmyisestä turvasta ja vaaleista jaloista.', commonsCategory: 'Category:Alces_alces' },
+-  { name: 'Valkohäntäpeura', latin: 'Odocoileus virginianus', en: 'white-tailed deer', group: 'Hirvieläimet', info: 'Tunnista pystyyn nousevasta, alta lumivalkoisesta hännästä.', commonsCategory: 'Category:Odocoileus_virginianus' },
+-  { name: 'Metsäkauris', latin: 'Capreolus capreolus', en: 'roe deer', group: 'Hirvieläimet', info: 'Pieni koko, ei häntää, valkoinen peräpeili. Lyhyet pystyt sarvet.', commonsCategory: 'Category:Capreolus_capreolus' },
+-  { name: 'Metsäpeura', latin: 'Rangifer tarandus fennicus', en: 'Finnish forest reindeer', group: 'Hirvieläimet', info: 'Siro ja pitkäjalkainen verrattuna poroon. Sarvet kapeat.', commonsCategory: 'Category:Rangifer_tarandus_fennicus' },
+-  { name: 'Kuusipeura', latin: 'Dama dama', en: 'fallow deer', group: 'Hirvieläimet', info: 'Täplikäs turkki, lapiomaiset sarvet.', commonsCategory: 'Category:Dama_dama' },
+-  { name: 'Villisika', latin: 'Sus scrofa', en: 'wild boar', group: 'Hirvieläimet', info: 'Tunnista jykevästä rungosta, kärsästä ja usein tummasta harjaksesta.', commonsCategory: 'Category:Sus_scrofa' },
++  { name: 'Hirvi', latin: 'Alces alces', en: 'moose', group: 'Hirvieläimet', info: 'Suomen suurin nisäkäs. Tunnista koosta, kyhmyisestä turvasta ja vaaleista jaloista.', commonsCategory: 'Category:Alces_alces', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Alces%20alces%20(Linnaeus,%201758).jpg'] },
++  { name: 'Valkohäntäpeura', latin: 'Odocoileus virginianus', en: 'white-tailed deer', group: 'Hirvieläimet', info: 'Tunnista pystyyn nousevasta, alta lumivalkoisesta hännästä.', commonsCategory: 'Category:Odocoileus_virginianus', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/White-tailed%20deer.jpg', 'https://commons.wikimedia.org/wiki/Special:FilePath/Adult%20white%20tailed%20deer%20buck%20odocoileus%20virginianus.jpg'] },
++  { name: 'Metsäkauris', latin: 'Capreolus capreolus', en: 'roe deer', group: 'Hirvieläimet', info: 'Pieni koko, ei häntää, valkoinen peräpeili. Lyhyet pystyt sarvet.', commonsCategory: 'Category:Capreolus_capreolus', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Capreolus%20Capreolus%20(102611263).jpeg'] },
++  { name: 'Metsäpeura', latin: 'Rangifer tarandus fennicus', en: 'Finnish forest reindeer', group: 'Hirvieläimet', info: 'Siro ja pitkäjalkainen verrattuna poroon. Sarvet kapeat.', commonsCategory: 'Category:Rangifer_tarandus_fennicus', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Rangifer%20tarandus%20fennicus%20Mets%C3%A4peura%20IMG%205663%20C.jpg', 'https://commons.wikimedia.org/wiki/Special:FilePath/Rangifer%20tarandus%20fennicus%20(juvenile).jpg'] },
++  { name: 'Kuusipeura', latin: 'Dama dama', en: 'fallow deer', group: 'Hirvieläimet', info: 'Täplikäs turkki, lapiomaiset sarvet.', commonsCategory: 'Category:Dama_dama', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Dama%20dama%2001.jpg', 'https://commons.wikimedia.org/wiki/Special:FilePath/Dama%20dama.JPG'] },
++  { name: 'Villisika', latin: 'Sus scrofa', en: 'wild boar', group: 'Hirvieläimet', info: 'Tunnista jykevästä rungosta, kärsästä ja usein tummasta harjaksesta.', commonsCategory: 'Category:Sus_scrofa', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Wild%20Boar%20frontal.jpg', 'https://commons.wikimedia.org/wiki/Special:FilePath/Wild%20boar%20(Sus%20scrofa).jpg'] },
+ 
+-  { name: 'Saksanhirvi', latin: 'Cervus elaphus', en: 'red deer', group: 'Hirvieläimet', info: 'Suuri hirvieläin. Uroksella monihaaraiset sarvet (”kruunu”).', commonsCategory: 'Category:Cervus_elaphus' },
+-  { name: 'Japaninpeura', latin: 'Cervus nippon', en: 'sika deer', group: 'Hirvieläimet', info: 'Keskikokoinen peura. Usein täpläinen turkki ja vaalea peräpeili.', commonsCategory: 'Category:Cervus_nippon' },
+-  { name: 'Mufloni', latin: 'Ovis orientalis musimon', en: 'mouflon', group: 'Hirvieläimet', info: 'Villilampaan tyyppinen. Uroksella voimakkaasti kiertyneet sarvet.', commonsCategory: 'Category:Ovis_orientalis_musimon' },
++  { name: 'Saksanhirvi', latin: 'Cervus elaphus', en: 'red deer', group: 'Hirvieläimet', info: 'Suuri hirvieläin. Uroksella monihaaraiset sarvet (”kruunu”).', commonsCategory: 'Category:Cervus_elaphus', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Male%20red%20deer%20(Cervus%20elaphus),%20Munich,%20Germany%20-%2020060530.jpg', 'https://commons.wikimedia.org/wiki/Special:FilePath/Cervus%20elaphus%20elaphus%20herd.jpg'] },
++  { name: 'Japaninpeura', latin: 'Cervus nippon', en: 'sika deer', group: 'Hirvieläimet', info: 'Keskikokoinen peura. Usein täpläinen turkki ja vaalea peräpeili.', commonsCategory: 'Category:Cervus_nippon', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Cervus%20nippon%2001.jpg'] },
++  { name: 'Mufloni', latin: 'Ovis orientalis musimon', en: 'mouflon', group: 'Hirvieläimet', info: 'Villilampaan tyyppinen. Uroksella voimakkaasti kiertyneet sarvet.', commonsCategory: 'Category:Ovis_orientalis_musimon', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Ovis%20orientalis%20musimon.jpg', 'https://commons.wikimedia.org/wiki/Special:FilePath/Mufl%C3%B3n.jpg'] },
+ 
+   // =========================
+   // JÄNISELÄIMET & JYRSIJÄT
+   // =========================
+-  { name: 'Villikani', latin: 'Oryctolagus cuniculus', en: 'European rabbit', group: 'Jäniseläimet & jyrsijät', info: 'Kani on yleensä pienempi ja pyöreämpi kuin jänikset. Korvat suhteessa lyhyemmät.', commonsCategory: 'Category:Oryctolagus_cuniculus' },
+-  { name: 'Metsäjänis', latin: 'Lepus timidus', en: 'mountain hare', group: 'Jäniseläimet & jyrsijät', info: 'Talviturkki vaalenee/valkenee. Korvan kärjet usein tummat. Suomessa yleinen.', commonsCategory: 'Category:Lepus_timidus' },
+-  { name: 'Rusakko', latin: 'Lepus europaeus', en: 'brown hare', group: 'Jäniseläimet & jyrsijät', info: 'Isompi ja pitkäkorvaisempi kuin metsäjänis. Talvella yleensä ruskea.', commonsCategory: 'Category:Lepus_europaeus' },
+-  { name: 'Orava', latin: 'Sciurus vulgaris', en: 'red squirrel', group: 'Jäniseläimet & jyrsijät', info: 'Tunnista tuuheasta hännästä ja usein korvatupsuista. Väritys vaihtelee.', commonsCategory: 'Category:Sciurus_vulgaris' },
+-  { name: 'Euroopanmajava', latin: 'Castor fiber', en: 'Eurasian beaver', group: 'Jäniseläimet & jyrsijät', info: 'Iso jyrsijä. Tunnista leveästä, litteästä hännästä ja patoamisesta.', commonsCategory: 'Category:Castor_fiber' },
+-  { name: 'Kanadanmajava', latin: 'Castor canadensis', en: 'North American beaver', group: 'Jäniseläimet & jyrsijät', info: 'Majava kuten euroopanmajava, mutta laji eri.', commonsCategory: 'Category:Castor_canadensis' },
+-  { name: 'Piisami', latin: 'Ondatra zibethicus', en: 'muskrat', group: 'Jäniseläimet & jyrsijät', info: 'Vesistöjen jyrsijä. Pitkä, sivuilta litteä häntä.', commonsCategory: 'Category:Ondatra_zibethicus' },
+-  { name: 'Rämemajava', latin: 'Myocastor coypus', en: 'coypu (nutria)', group: 'Jäniseläimet & jyrsijät', info: 'Iso vesijyrsijä. Usein oranssit etuhampaat.', commonsCategory: 'Category:Myocastor_coypus' },
++  { name: 'Villikani', latin: 'Oryctolagus cuniculus', en: 'European rabbit', group: 'Jäniseläimet & jyrsijät', info: 'Kani on yleensä pienempi ja pyöreämpi kuin jänikset. Korvat suhteessa lyhyemmät.', commonsCategory: 'Category:Oryctolagus_cuniculus', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Oryctolagus%20cuniculus.jpg'] },
++  { name: 'Metsäjänis', latin: 'Lepus timidus', en: 'mountain hare', group: 'Jäniseläimet & jyrsijät', info: 'Talviturkki vaalenee/valkenee. Korvan kärjet usein tummat. Suomessa yleinen.', commonsCategory: 'Category:Lepus_timidus', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Lepus%20timidus%2001.JPG', 'https://commons.wikimedia.org/wiki/Special:FilePath/Lepus%20timidus%20Oulu%2020120428b.JPG'] },
++  { name: 'Rusakko', latin: 'Lepus europaeus', en: 'brown hare', group: 'Jäniseläimet & jyrsijät', info: 'Isompi ja pitkäkorvaisempi kuin metsäjänis. Talvella yleensä ruskea.', commonsCategory: 'Category:Lepus_europaeus', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/20220502%20Lepus%20europaeus.jpg', 'https://commons.wikimedia.org/wiki/Special:FilePath/Lepus%20europaeus%20Oulu%2020130716.JPG'] },
++  { name: 'Orava', latin: 'Sciurus vulgaris', en: 'red squirrel', group: 'Jäniseläimet & jyrsijät', info: 'Tunnista tuuheasta hännästä ja usein korvatupsuista. Väritys vaihtelee.', commonsCategory: 'Category:Sciurus_vulgaris', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Sciurus%20vulgaris.jpg'] },
++  { name: 'Euroopanmajava', latin: 'Castor fiber', en: 'Eurasian beaver', group: 'Jäniseläimet & jyrsijät', info: 'Iso jyrsijä. Tunnista leveästä, litteästä hännästä ja patoamisesta.', commonsCategory: 'Category:Castor_fiber', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Bever%20-%20Eurasian%20beaver%20-%20Castor%20fiber%205.jpg', 'https://commons.wikimedia.org/wiki/Special:FilePath/Eurasian%20beaver%20(Castor%20fiber)%20Wizna.jpg'] },
++  { name: 'Kanadanmajava', latin: 'Castor canadensis', en: 'North American beaver', group: 'Jäniseläimet & jyrsijät', info: 'Majava kuten euroopanmajava, mutta laji eri.', commonsCategory: 'Category:Castor_canadensis', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Castor%20canadensis.jpg'] },
++  { name: 'Piisami', latin: 'Ondatra zibethicus', en: 'muskrat', group: 'Jäniseläimet & jyrsijät', info: 'Vesistöjen jyrsijä. Pitkä, sivuilta litteä häntä.', commonsCategory: 'Category:Ondatra_zibethicus', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Ondatra%20zibethicus%20CT.jpg', 'https://commons.wikimedia.org/wiki/Special:FilePath/Ondatra%20zibethicus.jpg'] },
++  { name: 'Rämemajava', latin: 'Myocastor coypus', en: 'coypu (nutria)', group: 'Jäniseläimet & jyrsijät', info: 'Iso vesijyrsijä. Usein oranssit etuhampaat.', commonsCategory: 'Category:Myocastor_coypus', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Ragondin%20(Myocastor%20coypus)%20(39).jpg'] },
+ 
+   // =========================
+   // METSÄKANALINNUT
+   // =========================
+-  { name: 'Metso', latin: 'Tetrao urogallus', en: 'capercaillie', group: 'Metsäkanalinnut', info: 'Uros on suuri ja musta, naaras ruskeankirjava.', commonsCategory: 'Category:Tetrao_urogallus' },
+-  { name: 'Teeri', latin: 'Lyrurus tetrix', en: 'black grouse', group: 'Metsäkanalinnut', info: 'Uroksella lyyrapyrstö.', commonsCategory: 'Category:Lyrurus_tetrix' },
+-  { name: 'Pyy', latin: 'Tetrastes bonasia', en: 'hazel grouse', group: 'Metsäkanalinnut', info: 'Pieni, harmaankirjava.', commonsCategory: 'Category:Tetrastes_bonasia' },
+-  { name: 'Riekko', latin: 'Lagopus lagopus', en: 'willow ptarmigan', group: 'Metsäkanalinnut', info: 'Talvella valkoinen.', commonsCategory: 'Category:Lagopus_lagopus' },
+-  { name: 'Kiiruna', latin: 'Lagopus muta', en: 'rock ptarmigan', group: 'Metsäkanalinnut', info: 'Tunturialueiden laji.', commonsCategory: 'Category:Lagopus_muta' },
+-  { name: 'Peltopyy', latin: 'Perdix perdix', en: 'grey partridge', group: 'Metsäkanalinnut', info: 'Peltomaisemien kanalintu.', commonsCategory: 'Category:Perdix_perdix' },
+-  { name: 'Fasaani', latin: 'Phasianus colchicus', en: 'common pheasant', group: 'Metsäkanalinnut', info: 'Uroksella näyttävä väritys.', commonsCategory: 'Category:Phasianus_colchicus' },
++  { name: 'Metso', latin: 'Tetrao urogallus', en: 'capercaillie', group: 'Metsäkanalinnut', info: 'Uros on suuri ja musta, naaras ruskeankirjava.', commonsCategory: 'Category:Tetrao_urogallus', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Tetrao%20urogallus.JPG'] },
++  { name: 'Teeri', latin: 'Lyrurus tetrix', en: 'black grouse', group: 'Metsäkanalinnut', info: 'Uroksella lyyrapyrstö.', commonsCategory: 'Category:Lyrurus_tetrix', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Black%20Grouse%20-%20Finland%20050068%20(15357063249)%20A.jpg', 'https://commons.wikimedia.org/wiki/Special:FilePath/Korhoen%20-%20black%20grouse%20-%20Lyrurus%20tetrix%204.jpg'] },
++  { name: 'Pyy', latin: 'Tetrastes bonasia', en: 'hazel grouse', group: 'Metsäkanalinnut', info: 'Pieni, harmaankirjava.', commonsCategory: 'Category:Tetrastes_bonasia', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Tetrastes%20bonasia.jpg', 'https://commons.wikimedia.org/wiki/Special:FilePath/Pyy%20(Tetrastes%20bonasia).jpg'] },
++  { name: 'Riekko', latin: 'Lagopus lagopus', en: 'willow ptarmigan', group: 'Metsäkanalinnut', info: 'Talvella valkoinen.', commonsCategory: 'Category:Lagopus_lagopus', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Male%20Willow%20Ptarmigan%20(Lagopus%20lagopus).jpg'] },
++  { name: 'Kiiruna', latin: 'Lagopus muta', en: 'rock ptarmigan', group: 'Metsäkanalinnut', info: 'Tunturialueiden laji.', commonsCategory: 'Category:Lagopus_muta', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Rock%20Ptarmigan%20(Lagopus%20Muta).jpg'] },
++  { name: 'Peltopyy', latin: 'Perdix perdix', en: 'grey partridge', group: 'Metsäkanalinnut', info: 'Peltomaisemien kanalintu.', commonsCategory: 'Category:Perdix_perdix', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Perdix%20perdix%2001.JPG'] },
++  { name: 'Fasaani', latin: 'Phasianus colchicus', en: 'common pheasant', group: 'Metsäkanalinnut', info: 'Uroksella näyttävä väritys.', commonsCategory: 'Category:Phasianus_colchicus', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Phasianus%20colchicus%20female%20Vanhankaupunginlahti%20Finland.jpg'] },
+ 
+   // =========================
+   // VESILINNUT
+   // =========================
+-  { name: 'Heinäsorsa', latin: 'Anas platyrhynchos', en: 'mallard', group: 'Vesilinnut', info: 'Yleisin sorsa.', commonsCategory: 'Category:Anas_platyrhynchos' },
+-  { name: 'Tavi', latin: 'Anas crecca', en: 'common teal', group: 'Vesilinnut', info: 'Pienikokoinen sorsa.', commonsCategory: 'Category:Anas_crecca' },
+-  { name: 'Heinätavi', latin: 'Spatula querquedula', en: 'garganey', group: 'Vesilinnut', info: 'Vaalea kulmakarvajuova.', commonsCategory: 'Category:Spatula_querquedula' },
+-  { name: 'Haapana', latin: 'Mareca penelope', en: 'Eurasian wigeon', group: 'Vesilinnut', info: 'Punaruskea pää.', commonsCategory: 'Category:Mareca_penelope' },
+-  { name: 'Jouhisorsa', latin: 'Anas acuta', en: 'northern pintail', group: 'Vesilinnut', info: 'Pitkä pyrstö.', commonsCategory: 'Category:Anas_acuta' },
+-  { name: 'Lapasorsa', latin: 'Spatula clypeata', en: 'northern shoveler', group: 'Vesilinnut', info: 'Lusikkamainen nokka.', commonsCategory: 'Category:Spatula_clypeata' },
+-  { name: 'Punasotka', latin: 'Aythya ferina', en: 'common pochard', group: 'Vesilinnut', info: 'Sukeltajasorsa.', commonsCategory: 'Category:Aythya_ferina' },
+-  { name: 'Tukkasotka', latin: 'Aythya fuligula', en: 'tufted duck', group: 'Vesilinnut', info: 'Päässä töyhtö.', commonsCategory: 'Category:Aythya_fuligula' },
+-  { name: 'Telkkä', latin: 'Bucephala clangula', en: 'common goldeneye', group: 'Vesilinnut', info: 'Valkoinen poskilaikku.', commonsCategory: 'Category:Bucephala_clangula' },
+-  { name: 'Haahka', latin: 'Somateria mollissima', en: 'common eider', group: 'Vesilinnut', info: 'Suuri merisorsa.', commonsCategory: 'Category:Somateria_mollissima' },
+-  { name: 'Alli', latin: 'Clangula hyemalis', en: 'long-tailed duck', group: 'Vesilinnut', info: 'Pitkä pyrstö.', commonsCategory: 'Category:Clangula_hyemalis' },
+-  { name: 'Isokoskelo', latin: 'Mergus merganser', en: 'goosander', group: 'Vesilinnut', info: 'Pitkä punainen nokka.', commonsCategory: 'Category:Mergus_merganser' },
+-  { name: 'Tukkakoskelo', latin: 'Mergus serrator', en: 'red-breasted merganser', group: 'Vesilinnut', info: 'Töyhtöinen.', commonsCategory: 'Category:Mergus_serrator' },
+-  { name: 'Metsähanhi', latin: 'Anser fabalis', en: 'bean goose', group: 'Vesilinnut', info: 'Musta-oranssi nokka.', commonsCategory: 'Category:Anser_fabalis' },
+-  { name: 'Merihanhi', latin: 'Anser anser', en: 'greylag goose', group: 'Vesilinnut', info: 'Oranssi nokka.', commonsCategory: 'Category:Anser_anser' },
+-  { name: 'Kanadanhanhi', latin: 'Branta canadensis', en: 'Canada goose', group: 'Vesilinnut', info: 'Musta kaula.', commonsCategory: 'Category:Branta_canadensis' },
++  { name: 'Heinäsorsa', latin: 'Anas platyrhynchos', en: 'mallard', group: 'Vesilinnut', info: 'Yleisin sorsa.', commonsCategory: 'Category:Anas_platyrhynchos', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Anas%20platyrhynchos%20male%20female.jpg'] },
++  { name: 'Tavi', latin: 'Anas crecca', en: 'common teal', group: 'Vesilinnut', info: 'Pienikokoinen sorsa.', commonsCategory: 'Category:Anas_crecca', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Common%20teal%20(Anas%20crecca)%20male%202.jpg'] },
++  { name: 'Heinätavi', latin: 'Spatula querquedula', en: 'garganey', group: 'Vesilinnut', info: 'Vaalea kulmakarvajuova.', commonsCategory: 'Category:Spatula_querquedula', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Garganey%20(Spatula%20querquedula)%20male%20and%20female%202.jpg'] },
++  { name: 'Haapana', latin: 'Mareca penelope', en: 'Eurasian wigeon', group: 'Vesilinnut', info: 'Punaruskea pää.', commonsCategory: 'Category:Mareca_penelope', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Mareca%20penelope%20Oulu%2020110515%2002.jpg'] },
++  { name: 'Jouhisorsa', latin: 'Anas acuta', en: 'northern pintail', group: 'Vesilinnut', info: 'Pitkä pyrstö.', commonsCategory: 'Category:Anas_acuta', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Anas%20acuta%20-Westham%20Island%20-Canada-8.jpg'] },
++  { name: 'Lapasorsa', latin: 'Spatula clypeata', en: 'northern shoveler', group: 'Vesilinnut', info: 'Lusikkamainen nokka.', commonsCategory: 'Category:Spatula_clypeata', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Spatula%20clypeata%20Oulu%20Finland%202016-05-07.jpg'] },
++  { name: 'Punasotka', latin: 'Aythya ferina', en: 'common pochard', group: 'Vesilinnut', info: 'Sukeltajasorsa.', commonsCategory: 'Category:Aythya_ferina', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Aythya%20ferina%20(cropped).jpg'] },
++  { name: 'Tukkasotka', latin: 'Aythya fuligula', en: 'tufted duck', group: 'Vesilinnut', info: 'Päässä töyhtö.', commonsCategory: 'Category:Aythya_fuligula', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Aythya%20Fuligula%20Oulu%2020120519.JPG'] },
++  { name: 'Telkkä', latin: 'Bucephala clangula', en: 'common goldeneye', group: 'Vesilinnut', info: 'Valkoinen poskilaikku.', commonsCategory: 'Category:Bucephala_clangula', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Bucephala%20clangula%2018042024%20Kaijonlahti,%20Finland%2002.jpg'] },
++  { name: 'Haahka', latin: 'Somateria mollissima', en: 'common eider', group: 'Vesilinnut', info: 'Suuri merisorsa.', commonsCategory: 'Category:Somateria_mollissima', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Somateria%20mollissima%20(cropped).jpg'] },
++  { name: 'Alli', latin: 'Clangula hyemalis', en: 'long-tailed duck', group: 'Vesilinnut', info: 'Pitkä pyrstö.', commonsCategory: 'Category:Clangula_hyemalis', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Long-tailed%20duck%20(Clangula%20hyemalis).jpg'] },
++  { name: 'Isokoskelo', latin: 'Mergus merganser', en: 'goosander', group: 'Vesilinnut', info: 'Pitkä punainen nokka.', commonsCategory: 'Category:Mergus_merganser', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Mergus%20merganser,%20female%20and%20male,%20Vaxholm,%20Sweden.jpg'] },
++  { name: 'Tukkakoskelo', latin: 'Mergus serrator', en: 'red-breasted merganser', group: 'Vesilinnut', info: 'Töyhtöinen.', commonsCategory: 'Category:Mergus_serrator', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Mergus%20serrator%20IMG%205623%20hurum.JPG'] },
++  { name: 'Metsähanhi', latin: 'Anser fabalis', en: 'bean goose', group: 'Vesilinnut', info: 'Musta-oranssi nokka.', commonsCategory: 'Category:Anser_fabalis', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Anser%20fabalis%20fabalis%20(Taiga%20Bean%20Goose),%20Naturschutzgebiet%20Schellbruch,%20L%C3%BCbeck,%20Germany.jpg'] },
++  { name: 'Merihanhi', latin: 'Anser anser', en: 'greylag goose', group: 'Vesilinnut', info: 'Oranssi nokka.', commonsCategory: 'Category:Anser_anser', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Anser%20Anser%20Oulu%2020240427.jpg', 'https://commons.wikimedia.org/wiki/Special:FilePath/Anser%20anser.jpg'] },
++  { name: 'Kanadanhanhi', latin: 'Branta canadensis', en: 'Canada goose', group: 'Vesilinnut', info: 'Musta kaula.', commonsCategory: 'Category:Branta_canadensis', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Branta%20canadensis%20-Seurasaari%20-Finland%20-parents%20and%20goslings-8.jpg'] },
+ 
+   // =========================
+   // PIENPEDOT
+   // =========================
+-  { name: 'Kettu', latin: 'Vulpes vulpes', en: 'red fox', group: 'Pienpedot', info: 'Punainen turkki.', commonsCategory: 'Category:Vulpes_vulpes' },
+-  { name: 'Supikoira', latin: 'Nyctereutes procyonoides', en: 'raccoon dog', group: 'Pienpedot', info: 'Musta naamarikuvio.', commonsCategory: 'Category:Nyctereutes_procyonoides' },
+-  { name: 'Mäyrä', latin: 'Meles meles', en: 'European badger', group: 'Pienpedot', info: 'Valkoiset juovat.', commonsCategory: 'Category:Meles_meles' },
++  { name: 'Kettu', latin: 'Vulpes vulpes', en: 'red fox', group: 'Pienpedot', info: 'Punainen turkki.', commonsCategory: 'Category:Vulpes_vulpes', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Vulpes_vulpes_in_snow.jpg'] },
++  { name: 'Supikoira', latin: 'Nyctereutes procyonoides', en: 'raccoon dog', group: 'Pienpedot', info: 'Musta naamarikuvio.', commonsCategory: 'Category:Nyctereutes_procyonoides', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Nyctereutes_procyonoides_16072008.jpg'] },
++  { name: 'Mäyrä', latin: 'Meles meles', en: 'European badger', group: 'Pienpedot', info: 'Valkoiset juovat.', commonsCategory: 'Category:Meles_meles', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Badger-badger.jpg'] },
+   { name: 'Näätä', latin: 'Martes martes', en: 'pine marten', group: 'Pienpedot', info: 'Keltainen kurkkulaikku.', commonsCategory: 'Category:Martes_martes' },
+-  { name: 'Minkki', latin: 'Neovison vison', en: 'American mink', group: 'Pienpedot', info: 'Tumma turkki.', commonsCategory: 'Category:Neovison_vison' },
++  { name: 'Minkki', latin: 'Neovison vison', en: 'American mink', group: 'Pienpedot', info: 'Tumma turkki.', commonsCategory: 'Category:Neovison_vison', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Neovison_vison_-_Bod%C3%B8,_Norway_04.jpg'] },
+   { name: 'Pesukarhu', latin: 'Procyon lotor', en: 'raccoon', group: 'Pienpedot', info: 'Naamio kasvoissa.', commonsCategory: 'Category:Procyon_lotor' },
+-  { name: 'Kärppä', latin: 'Mustela erminea', en: 'stoat', group: 'Pienpedot', info: 'Musta hännänpää.', commonsCategory: 'Category:Mustela_erminea' },
++  { name: 'Kärppä', latin: 'Mustela erminea', en: 'stoat', group: 'Pienpedot', info: 'Musta hännänpää.', commonsCategory: 'Category:Mustela_erminea', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Mustela_erminea_winter.jpg'] },
+   { name: 'Hilleri', latin: 'Mustela putorius', en: 'European polecat', group: 'Pienpedot', info: 'Vaalea kuono.', commonsCategory: 'Category:Mustela_putorius' },
+   { name: 'Saukko', latin: 'Lutra lutra', en: 'Eurasian otter', group: 'Pienpedot', info: 'Virtaviivainen.', commonsCategory: 'Category:Lutra_lutra' },
+ 
+   // =========================
+   // SUURPEDOT
+   // =========================
+-  { name: 'Susi', latin: 'Canis lupus', en: 'wolf', group: 'Suurpedot', info: 'Koiramainen.', commonsCategory: 'Category:Canis_lupus' },
++  { name: 'Susi', latin: 'Canis lupus', en: 'wolf', group: 'Suurpedot', info: 'Koiramainen.', commonsCategory: 'Category:Canis_lupus', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Canis_lupus_laying.jpg'] },
+   { name: 'Tarhattu naali', latin: 'Vulpes lagopus', en: 'Arctic fox', group: 'Suurpedot', info: 'Pienikokoinen.', commonsCategory: 'Category:Vulpes_lagopus' },
+-  { name: 'Karhu', latin: 'Ursus arctos', en: 'brown bear', group: 'Suurpedot', info: 'Massiivinen.', commonsCategory: 'Category:Ursus_arctos' },
+-  { name: 'Ahma', latin: 'Gulo gulo', en: 'wolverine', group: 'Suurpedot', info: 'Jykevä.', commonsCategory: 'Category:Gulo_gulo' },
+-  { name: 'Ilves', latin: 'Lynx lynx', en: 'Eurasian lynx', group: 'Suurpedot', info: 'Korvatupsut.', commonsCategory: 'Category:Lynx_lynx' },
++  { name: 'Karhu', latin: 'Ursus arctos', en: 'brown bear', group: 'Suurpedot', info: 'Massiivinen.', commonsCategory: 'Category:Ursus_arctos', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Brown%20bear%20(Ursus%20arctos),%20Viiksimo,%20Kainuu%20region,%20Finland,%2016%20June%202018%20(43094873292).jpg'] },
++  { name: 'Ahma', latin: 'Gulo gulo', en: 'wolverine', group: 'Suurpedot', info: 'Jykevä.', commonsCategory: 'Category:Gulo_gulo', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Gulo_gulo_in_Ranua_zoo.JPG'] },
++  { name: 'Ilves', latin: 'Lynx lynx', en: 'Eurasian lynx', group: 'Suurpedot', info: 'Korvatupsut.', commonsCategory: 'Category:Lynx_lynx', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Lynx_Helsinki_Zoo.JPG'] },
+ 
+   // =========================
+   // HYLKEET
+   // =========================
+-  { name: 'Itämeren norppa', latin: 'Pusa hispida botnica', en: 'Baltic ringed seal', group: 'Hylkeet', info: 'Pieni hylje.', commonsCategory: 'Category:Pusa_hispida_botnica' },
++  { name: 'Itämeren norppa', latin: 'Pusa hispida botnica', en: 'Baltic ringed seal', group: 'Hylkeet', info: 'Pieni hylje.', commonsCategory: 'Category:Pusa_hispida_botnica', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Pusa_hispida_botnica_Oulu_20150516_04.JPG'] },
+   { name: 'Kirjohylje', latin: 'Phoca vitulina', en: 'harbour seal', group: 'Hylkeet', info: 'Täpläinen.', commonsCategory: 'Category:Phoca_vitulina' },
+-  { name: 'Halli', latin: 'Halichoerus grypus', en: 'grey seal', group: 'Hylkeet', info: 'Pitkä kuono.', commonsCategory: 'Category:Halichoerus_grypus' },
++  { name: 'Halli', latin: 'Halichoerus grypus', en: 'grey seal', group: 'Hylkeet', info: 'Pitkä kuono.', commonsCategory: 'Category:Halichoerus_grypus', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Halichoerus_grypus_grypus,_Vakka-Suomi,_Finland_1.jpg'] },
+ 
+   // =========================
+   // MUUT RIISTALINNUT
+   // =========================
+-  { name: 'Sepelkyyhky', latin: 'Columba palumbus', en: 'common wood pigeon', group: 'Muut riistalinnut', info: 'Valkoinen kaulalaikku.', commonsCategory: 'Category:Columba_palumbus' },
++  { name: 'Sepelkyyhky', latin: 'Columba palumbus', en: 'common wood pigeon', group: 'Muut riistalinnut', info: 'Valkoinen kaulalaikku.', commonsCategory: 'Category:Columba_palumbus', images: ['https://commons.wikimedia.org/wiki/Special:FilePath/Columba_palumbus_Sepelkyyhky_IM5373_C.JPG'] },
+   { name: 'Nokikana', latin: 'Fulica atra', en: 'Eurasian coot', group: 'Muut riistalinnut', info: 'Valkoinen otsakilpi.', commonsCategory: 'Category:Fulica_atra' },
+   { name: 'Lehtokurppa', latin: 'Scolopax rusticola', en: 'Eurasian woodcock', group: 'Muut riistalinnut', info: 'Pitkä nokka.', commonsCategory: 'Category:Scolopax_rusticola' },
 ];
 
 export const SAMPLE_QUESTIONS: Question[] = [
