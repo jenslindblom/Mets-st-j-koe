@@ -1,3 +1,4 @@
+
 export enum QuestionType {
   IDENTIFICATION = 'identification',
   REGULATION = 'regulation',
@@ -32,7 +33,7 @@ export interface QuizState {
   isExamMode: boolean;
   isFinished: boolean;
   startTime: number | null;
-  timeLeft: number | null; // seconds
+  timeLeft: number | null;
 }
 
 export interface QuizResults {
@@ -48,16 +49,17 @@ export interface Species {
   en: string;
   group: string;
   info: string;
-
-  /**
-   * Vaihtoehto A: jos haluat joskus lukita tietyt kuvat käsin, lisää tänne suorat URLit.
-   * (Tämä ohittaa commonsCategoryn.)
-   */
   images?: string[];
-
-  /**
-   * Vaihtoehto B (suositus): Wikimedia Commons -kategoria, josta haetaan automaattisesti kuvia.
-   * Muoto: "Category:Alces_alces"
-   */
   commonsCategory?: string;
+}
+
+export interface UserProfile {
+  nickname: string;
+  createdAt: number;
+  totalPoints: number;
+  records: {
+    exam: number;
+    matching: number;
+    speed: number;
+  };
 }
