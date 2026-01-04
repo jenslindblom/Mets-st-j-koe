@@ -14,6 +14,7 @@ const ProfileView: React.FC<Props> = ({ profile, onBack, onLogout }) => {
   const groupStats = profile.groupStats || {};
   const unlockedAchievements = achievements.filter(a => a.unlockedAt);
   const nickname = profile.nickname || 'Metsästäjä';
+  const records = profile.records || { exam: 0, matching: 0, speed: 0 };
   
   return (
     <div className="min-h-screen bg-stone-50 p-6 md:p-12 animate-fade-in">

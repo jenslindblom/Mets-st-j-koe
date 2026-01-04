@@ -29,10 +29,29 @@ export const learningStore = {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { profiles: {}, activeProfileId: null };
     try {
-      return JSON.parse(raw);
+      const data = JSON.parse(raw) as GlobalData;
+      // Hydraus: Varmistetaan että kaikilla profiileilla on tarvittavat kentät
+      if (data.profiles) {
+        Object.keys(data.profiles).forEach(id => {
+          data.profiles[id].profile = this.hydrateProfile(data.profiles[id].profile);
+        });
+      }
+      return data;
     } catch {
       return { profiles: {}, activeProfileId: null };
     }
+  },
+
+  hydrateProfile(p: any): UserProfile {
+    return {
+      ...p,
+      nickname: p.nickname || 'Metsästäjä',
+      totalPoints: p.totalPoints || 0,
+      level: p.level || 1,
+      achievements: p.achievements || [...INITIAL_ACHIEVEMENTS],
+      records: p.records || { exam: 0, matching: 0, speed: 0 },
+      groupStats: p.groupStats || {}
+    };
   },
 
   saveGlobalData(data: GlobalData) {
@@ -76,7 +95,7 @@ export const learningStore = {
         createdAt: Date.now(),
         totalPoints: 0,
         level: 1,
-        achievements: INITIAL_ACHIEVEMENTS,
+        achievements: [...INITIAL_ACHIEVEMENTS],
         records: { exam: 0, matching: 0, speed: 0 },
         groupStats: {}
       },
@@ -97,9 +116,9 @@ export const learningStore = {
       this.unlockAchievement(pData, 'night_owl');
     }
 
-    // Lintuasiantuntija (Vesilinnut + Metsäkanalinnut onnistumiset > 50)
+    // Lintuasiantuntija
     let birdCorrect = 0;
-    Object.keys(profile.groupStats).forEach(group => {
+    Object.keys(profile.groupStats || {}).forEach(group => {
       if (group.toLowerCase().includes('linnu')) {
         birdCorrect += profile.groupStats[group].correct;
       }
@@ -137,6 +156,8 @@ export const learningStore = {
       this.unlockAchievement(pData, 'speed_demon');
     }
     
+    if (!pData.profile.records) pData.profile.records = { exam: 0, matching: 0, speed: 0 };
+    
     if (score > pData.profile.records[type]) {
       pData.profile.records[type] = score;
       leaderboardService.submitScore({
@@ -156,6 +177,7 @@ export const learningStore = {
     if (!id || !data.profiles[id]) return;
     const pData = data.profiles[id];
     
+    if (!pData.profile.groupStats) pData.profile.groupStats = {};
     if (!pData.profile.groupStats[speciesGroup]) {
       pData.profile.groupStats[speciesGroup] = { correct: 0, total: 0 };
     }

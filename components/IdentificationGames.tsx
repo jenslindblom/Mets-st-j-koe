@@ -35,26 +35,27 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
     return () => { mountedRef.current = false; };
   }, []);
 
-  const filteredSpecies: Species[] = useMemo(() => {
-    const base = SPECIES_DB.filter(s => selectedGroups.includes(s.group));
-    const randomizedBase = [...base].sort(() => Math.random() - 0.5);
-    return randomizedBase.sort((a, b) => {
-      const weightA = learningStore.getPriorityWeight(a.name) + (Math.random() * 0.5);
-      const weightB = learningStore.getPriorityWeight(b.name) + (Math.random() * 0.5);
-      return weightB - weightA;
-    });
-  }, [selectedGroups]);
-
+  // Käytetään useEffectiä lajien suodatukseen ja sekoitukseen pelin alussa, 
+  // jotta saadaan aito satunnaisuus joka pelikerralla.
   useEffect(() => {
     const seq = ++seqRef.current;
-    if (filteredSpecies.length === 0) {
+    if (selectedGroups.length === 0) {
       setLoading(false);
       return;
     }
 
-    const sessionSize = Math.min(20, filteredSpecies.length);
-    const sessionPool = filteredSpecies.slice(0, sessionSize);
+    // 1. Suodatus
+    const base = SPECIES_DB.filter(s => selectedGroups.includes(s.group));
+    // 2. Sekoitus painotetusti mutta satunnaisesti
+    const randomized = [...base].sort(() => Math.random() - 0.5);
+    const sessionPool = randomized.sort((a, b) => {
+      // Lisätään reilu annos satunnaisuutta painotuksen oheen
+      const weightA = learningStore.getPriorityWeight(a.name) + (Math.random() * 5);
+      const weightB = learningStore.getPriorityWeight(b.name) + (Math.random() * 5);
+      return weightB - weightA;
+    }).slice(0, 20);
 
+    // 3. Kysymysten luonti
     const generated: Question[] = sessionPool.map((s, idx) => {
       const distractors = SPECIES_DB
         .filter(x => x.name !== s.name && x.group === s.group)
@@ -82,8 +83,13 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
 
     setQuestions(generated);
     setSpeedAnswers(new Array(generated.length).fill(null));
+    setCurrentIndex(0);
+    setScore(0);
+    setErrors(0);
+    setIsGameOver(false);
     setLoading(false);
 
+    // 4. Kuvien haku taustalla
     sessionPool.forEach((s, idx) => {
       resolveSpeciesImages(s, 800).then(imgRes => {
         if (!mountedRef.current || seq !== seqRef.current) return;
@@ -96,7 +102,7 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
         });
       });
     });
-  }, [filteredSpecies]);
+  }, [selectedGroups]);
 
   const goToNext = () => {
     if (currentIndex < questions.length - 1) {
@@ -106,6 +112,7 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
     } else {
       setGameOverReason('complete');
       setIsGameOver(true);
+      setIsProcessing(false);
     }
   };
 
@@ -121,7 +128,7 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
   };
 
   const handleSpeedAnswer = (index: number) => {
-    if (isProcessing || speedAnswers[currentIndex] !== null) return;
+    if (isProcessing || speedAnswers[currentIndex] !== null || isGameOver) return;
     
     setIsProcessing(true);
     const currentQ = questions[currentIndex];
@@ -129,6 +136,7 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
     const correctName = currentQ.options[currentQ.correctIndex];
     const groupName = currentQ.imageCaption || 'Muut';
     
+    // Päivitetään vastaukset välittömästi visuaaliseen palautteeseen
     setSpeedAnswers(prev => {
       const next = [...prev];
       next[currentIndex] = index;
@@ -137,22 +145,27 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
 
     if (isCorrect) {
       uiFeedback.playSuccess();
-      setScore(prev => prev + 1);
+      setScore(s => s + 1);
       learningStore.recordSuccess(correctName, groupName);
     } else {
       uiFeedback.playError();
       learningStore.recordError(correctName, groupName);
-      setErrors(prev => {
-        const newErrors = prev + 1;
-        if (newErrors >= MAX_ERRORS) {
-          setTimeout(() => setIsGameOver(true), 800);
-        }
-        return newErrors;
-      });
+      setErrors(e => e + 1);
     }
 
-    if (errors + (isCorrect ? 0 : 1) < MAX_ERRORS) {
-      setTimeout(goToNext, 800);
+    // Tarkistetaan pelin jatkuminen
+    const newErrors = errors + (isCorrect ? 0 : 1);
+    const isLast = currentIndex === questions.length - 1;
+
+    if (newErrors >= MAX_ERRORS) {
+      setGameOverReason('errors');
+      setTimeout(() => setIsGameOver(true), 1000);
+    } else if (isLast) {
+      setGameOverReason('complete');
+      setTimeout(() => setIsGameOver(true), 1000);
+    } else {
+      // Etene seuraavaan pienen viiveen jälkeen
+      setTimeout(goToNext, 1000);
     }
   };
 
@@ -161,9 +174,20 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
   if (isGameOver) return (
     <div className="min-h-screen bg-stone-50 flex items-center justify-center p-6">
       <div className="max-w-md w-full bg-white rounded-[3rem] shadow-2xl p-12 text-center animate-scale-up">
+        <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+           <span className="text-4xl">{gameOverReason === 'errors' ? '💔' : '🏆'}</span>
+        </div>
         <h2 className="text-3xl font-black text-emerald-900 mb-2">{gameOverReason === 'errors' ? 'Peli päättyi' : 'Hyvää työtä!'}</h2>
-        <div className="bg-stone-50 p-8 rounded-[2rem] my-8"><p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Pisteet</p><p className="text-6xl font-black text-emerald-900">{score} / {questions.length}</p></div>
-        <button onClick={() => onExit(mode === 'speed' ? score * 10 : score * 5)} className="w-full py-5 bg-emerald-800 text-white rounded-2xl font-black shadow-xl active:scale-95 transition-transform uppercase tracking-widest text-xs">Lopeta</button>
+        <div className="bg-stone-50 p-8 rounded-[2rem] my-8">
+           <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Pisteet</p>
+           <p className="text-6xl font-black text-emerald-900">{score} / {questions.length}</p>
+        </div>
+        <button 
+          onClick={() => onExit(mode === 'speed' ? score * 10 : score * 5)} 
+          className="w-full py-5 bg-emerald-800 text-white rounded-2xl font-black shadow-xl active:scale-95 transition-transform uppercase tracking-widest text-xs"
+        >
+          Lopeta
+        </button>
       </div>
     </div>
   );
@@ -177,7 +201,13 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
         <div className="flex justify-between items-center mb-10">
           <button onClick={() => onExit()} className="text-stone-400 hover:text-emerald-800 font-black uppercase text-[10px] tracking-widest flex items-center"><svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"/></svg>Takaisin</button>
           <div className="flex items-center space-x-4">
-            {mode === 'speed' && <div className="px-4 py-1.5 bg-rose-50 border border-rose-200 text-rose-600 rounded-full text-[10px] font-black uppercase tracking-widest">Virheet: {errors} / 3</div>}
+            {mode === 'speed' && (
+              <div className="flex space-x-1">
+                {[...Array(MAX_ERRORS)].map((_, i) => (
+                  <div key={i} className={`w-3 h-3 rounded-full ${i < errors ? 'bg-rose-500' : 'bg-stone-200'}`}></div>
+                ))}
+              </div>
+            )}
             <div className="px-4 py-1.5 bg-stone-200 rounded-full text-stone-600 font-black text-[10px] tracking-widest">{currentIndex + 1} / {questions.length}</div>
           </div>
         </div>
@@ -192,8 +222,40 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
         ) : (
           <div className="flex-1 flex flex-col justify-center animate-slide-up">
             <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-stone-100">
-              <div className="h-72 md:h-96 relative"><SafeImage src={current.imageUrl} fallback={current.fallbackImageUrl} alt="Laji" className="w-full h-full" />{speedAnswers[currentIndex] !== null && <div className={`absolute inset-0 flex items-center justify-center backdrop-blur-sm ${speedAnswers[currentIndex] === current.correctIndex ? 'bg-emerald-500/20' : 'bg-rose-500/20'}`}><div className={`p-8 rounded-full shadow-2xl ${speedAnswers[currentIndex] === current.correctIndex ? 'bg-emerald-600' : 'bg-rose-600'}`}><svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">{speedAnswers[currentIndex] === current.correctIndex ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M6 18L18 6M6 6l12 12" />}</svg></div></div>}</div>
-              <div className="p-8 md:p-12 grid grid-cols-1 sm:grid-cols-2 gap-4">{current.options.map((option, idx) => <button key={idx} onClick={() => handleSpeedAnswer(idx)} disabled={speedAnswers[currentIndex] !== null} className={`p-5 rounded-2xl font-black border-2 transition-all active:scale-95 text-xs uppercase tracking-widest ${speedAnswers[currentIndex] === null ? 'bg-white border-stone-100 hover:border-emerald-500 text-stone-700' : idx === current.correctIndex ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-inner' : idx === speedAnswers[currentIndex] ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-inner' : 'bg-white border-stone-50 text-stone-200 opacity-40'}`}>{option}</button>)}</div>
+              <div className="h-72 md:h-96 relative">
+                <SafeImage src={current.imageUrl} fallback={current.fallbackImageUrl} alt="Laji" className="w-full h-full" />
+                {speedAnswers[currentIndex] !== null && (
+                  <div className={`absolute inset-0 flex items-center justify-center backdrop-blur-sm ${speedAnswers[currentIndex] === current.correctIndex ? 'bg-emerald-500/20' : 'bg-rose-500/20'}`}>
+                    <div className={`p-8 rounded-full shadow-2xl animate-scale-up ${speedAnswers[currentIndex] === current.correctIndex ? 'bg-emerald-600' : 'bg-rose-600'}`}>
+                      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {speedAnswers[currentIndex] === current.correctIndex ? 
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" /> : 
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M6 18L18 6M6 6l12 12" />}
+                      </svg>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="p-8 md:p-12 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {current.options.map((option, idx) => (
+                  <button 
+                    key={idx} 
+                    onClick={() => handleSpeedAnswer(idx)} 
+                    disabled={speedAnswers[currentIndex] !== null} 
+                    className={`p-5 rounded-2xl font-black border-2 transition-all active:scale-95 text-xs uppercase tracking-widest ${
+                      speedAnswers[currentIndex] === null 
+                        ? 'bg-white border-stone-100 hover:border-emerald-500 text-stone-700' 
+                        : idx === current.correctIndex 
+                          ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-inner' 
+                          : idx === speedAnswers[currentIndex] 
+                            ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-inner' 
+                            : 'bg-white border-stone-50 text-stone-200 opacity-40'
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
