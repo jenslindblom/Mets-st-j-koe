@@ -30,7 +30,6 @@ export const learningStore = {
     if (!raw) return { profiles: {}, activeProfileId: null };
     try {
       const data = JSON.parse(raw) as GlobalData;
-      // Hydraus: Varmistetaan että kaikilla profiileilla on tarvittavat kentät
       if (data.profiles) {
         Object.keys(data.profiles).forEach(id => {
           data.profiles[id].profile = this.hydrateProfile(data.profiles[id].profile);
@@ -71,6 +70,7 @@ export const learningStore = {
 
   getAllProfiles(): UserProfile[] {
     const data = this.getGlobalData();
+    if (!data.profiles) return [];
     return Object.keys(data.profiles).map(key => data.profiles[key].profile);
   },
 
@@ -111,12 +111,10 @@ export const learningStore = {
     const profile = pData.profile;
     const now = new Date();
     
-    // Yökyöpeli
     if (now.getHours() >= 22 || now.getHours() <= 4) {
       this.unlockAchievement(pData, 'night_owl');
     }
 
-    // Lintuasiantuntija
     let birdCorrect = 0;
     Object.keys(profile.groupStats || {}).forEach(group => {
       if (group.toLowerCase().includes('linnu')) {
@@ -125,7 +123,6 @@ export const learningStore = {
     });
     if (birdCorrect >= 50) this.unlockAchievement(pData, 'bird_expert');
 
-    // Tason laskenta XP:stä
     const newLevel = Math.floor(Math.sqrt(profile.totalPoints / 100)) + 1;
     profile.level = newLevel;
   },

@@ -129,8 +129,18 @@ const App: React.FC = () => {
   };
 
   if (!data.profile) return <ProfileSetup onComplete={() => setData(learningStore.getData())} />;
+  
+  const profile = data.profile; // Varmistettu olemassaolo yllä
+  
+  // Lasketaan taso-XP:t Tinder-tyylistä palkkia varten
+  const currentXP = profile.totalPoints || 0;
+  const currentLevel = profile.level || 1;
+  const nextLevelXP = Math.pow(currentLevel, 2) * 100;
+  const currentLevelBaseXP = Math.pow(currentLevel - 1, 2) * 100;
+  const progressPercent = Math.min(100, Math.max(0, ((currentXP - currentLevelBaseXP) / (nextLevelXP - currentLevelBaseXP)) * 100));
+
   if (view === 'leaderboard') return <Leaderboard onBack={() => setView('home')} />;
-  if (view === 'profile' && data.profile) return <ProfileView profile={data.profile} onBack={() => setView('home')} onLogout={handleLogout} />;
+  if (view === 'profile') return <ProfileView profile={profile} onBack={() => setView('home')} onLogout={handleLogout} />;
 
   if (view === 'home') {
     return (
@@ -140,10 +150,25 @@ const App: React.FC = () => {
             <div className="flex flex-col items-center space-y-3">
               <div className="inline-flex items-center px-5 py-2.5 bg-emerald-100 rounded-full shadow-sm border border-emerald-200">
                 <span className="text-emerald-950 font-black text-sm tracking-tight">
-                  Tervehdys, <span className="underline decoration-emerald-500/30 text-emerald-900">{data.profile.nickname}</span>!
+                  Tervehdys, <span className="underline decoration-emerald-500/30 text-emerald-900">{profile.nickname}</span>!
                 </span>
               </div>
-              <div className="flex space-x-4">
+              
+              {/* XP-palkki (Tinder-tyylinen koukku) */}
+              <div className="w-full max-w-xs space-y-1">
+                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-emerald-800">
+                  <span>Taso {currentLevel}</span>
+                  <span>{currentXP} / {nextLevelXP} XP</span>
+                </div>
+                <div className="h-2 bg-stone-200 rounded-full overflow-hidden shadow-inner">
+                  <div 
+                    className="h-full bg-emerald-500 transition-all duration-1000 ease-out"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex space-x-4 pt-2">
                 <button onClick={() => setView('profile')} className="text-[11px] text-emerald-600 font-black hover:text-emerald-800 uppercase tracking-[0.2em] transition-colors">
                   Minun profiili
                 </button>
@@ -167,7 +192,7 @@ const App: React.FC = () => {
               <p className="text-sm text-stone-400 font-medium">Keskittyy automaattisesti vaikeisiin kohtiisi.</p>
             </button>
             <button onClick={() => setView('game-select')} className="bg-amber-600 p-8 rounded-[2.5rem] shadow-xl border-2 border-transparent hover:bg-amber-700 transition-all text-left group hover:-translate-y-2 duration-300">
-              <div className="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform"><svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>
+              <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform"><svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>
               <h3 className="text-2xl font-black text-white mb-2">Tunnistus</h3>
               <p className="text-sm text-amber-100/80 font-medium">Lajintunnistus kuvilla. Yli 200 riistalajia.</p>
             </button>
@@ -189,6 +214,7 @@ const App: React.FC = () => {
     );
   }
 
+  // Muut näkymät jatkuvat ennallaan...
   if (view === 'game-select') {
     return (
       <div className="min-h-screen bg-stone-50 p-6 flex items-center justify-center animate-fade-in">

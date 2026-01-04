@@ -35,8 +35,6 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
     return () => { mountedRef.current = false; };
   }, []);
 
-  // Käytetään useEffectiä lajien suodatukseen ja sekoitukseen pelin alussa, 
-  // jotta saadaan aito satunnaisuus joka pelikerralla.
   useEffect(() => {
     const seq = ++seqRef.current;
     if (selectedGroups.length === 0) {
@@ -44,18 +42,20 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
       return;
     }
 
-    // 1. Suodatus
     const base = SPECIES_DB.filter(s => selectedGroups.includes(s.group));
-    // 2. Sekoitus painotetusti mutta satunnaisesti
-    const randomized = [...base].sort(() => Math.random() - 0.5);
+    // Rehellinen Fisher-Yates sekoitus ennen painotuksia
+    const randomized = [...base];
+    for (let i = randomized.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [randomized[i], randomized[j]] = [randomized[j], randomized[i]];
+    }
+
     const sessionPool = randomized.sort((a, b) => {
-      // Lisätään reilu annos satunnaisuutta painotuksen oheen
-      const weightA = learningStore.getPriorityWeight(a.name) + (Math.random() * 5);
-      const weightB = learningStore.getPriorityWeight(b.name) + (Math.random() * 5);
+      const weightA = learningStore.getPriorityWeight(a.name) + (Math.random() * 3);
+      const weightB = learningStore.getPriorityWeight(b.name) + (Math.random() * 3);
       return weightB - weightA;
     }).slice(0, 20);
 
-    // 3. Kysymysten luonti
     const generated: Question[] = sessionPool.map((s, idx) => {
       const distractors = SPECIES_DB
         .filter(x => x.name !== s.name && x.group === s.group)
@@ -89,7 +89,6 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
     setIsGameOver(false);
     setLoading(false);
 
-    // 4. Kuvien haku taustalla
     sessionPool.forEach((s, idx) => {
       resolveSpeciesImages(s, 800).then(imgRes => {
         if (!mountedRef.current || seq !== seqRef.current) return;
@@ -136,7 +135,6 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
     const correctName = currentQ.options[currentQ.correctIndex];
     const groupName = currentQ.imageCaption || 'Muut';
     
-    // Päivitetään vastaukset välittömästi visuaaliseen palautteeseen
     setSpeedAnswers(prev => {
       const next = [...prev];
       next[currentIndex] = index;
@@ -153,19 +151,17 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
       setErrors(e => e + 1);
     }
 
-    // Tarkistetaan pelin jatkuminen
     const newErrors = errors + (isCorrect ? 0 : 1);
     const isLast = currentIndex === questions.length - 1;
 
     if (newErrors >= MAX_ERRORS) {
       setGameOverReason('errors');
-      setTimeout(() => setIsGameOver(true), 1000);
+      setTimeout(() => { if (mountedRef.current) setIsGameOver(true); }, 1000);
     } else if (isLast) {
       setGameOverReason('complete');
-      setTimeout(() => setIsGameOver(true), 1000);
+      setTimeout(() => { if (mountedRef.current) setIsGameOver(true); }, 1000);
     } else {
-      // Etene seuraavaan pienen viiveen jälkeen
-      setTimeout(goToNext, 1000);
+      setTimeout(() => { if (mountedRef.current) goToNext(); }, 1000);
     }
   };
 
