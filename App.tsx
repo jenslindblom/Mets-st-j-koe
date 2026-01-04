@@ -11,6 +11,7 @@ import ProfileView from './components/ProfileView';
 import Leaderboard from './components/Leaderboard';
 import Encyclopedia from './components/Encyclopedia';
 import CurationTool from './components/CurationTool';
+import PromoStudio from './components/PromoStudio';
 import { resolveSpeciesImages } from './services/commonsImages';
 import { uiFeedback } from './services/uiFeedbackService';
 import { learningStore } from './services/learningStore';
@@ -19,7 +20,7 @@ const DAILY_GOAL = 15;
 
 const App: React.FC = () => {
   const [data, setData] = useState(learningStore.getData());
-  const [view, setView] = useState<'home' | 'quiz' | 'results' | 'game-select' | 'game-play' | 'leaderboard' | 'profile' | 'encyclopedia' | 'curation'>('home');
+  const [view, setView] = useState<'home' | 'quiz' | 'results' | 'game-select' | 'game-play' | 'leaderboard' | 'profile' | 'encyclopedia' | 'curation' | 'promo'>('home');
   const [gameMode, setGameMode] = useState<'flashcard' | 'speed' | 'matching'>('flashcard');
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
@@ -144,7 +145,7 @@ const App: React.FC = () => {
   if (view === 'leaderboard') return <Leaderboard onBack={() => setView('home')} />;
   if (view === 'profile') return (
     <div className="relative h-screen">
-      <ProfileView profile={profile} onBack={() => setView('home')} onLogout={handleLogout} />
+      <ProfileView profile={profile} onBack={() => setView('home')} onLogout={handleLogout} onOpenPromo={() => setView('promo')} />
       {/* Hidden Admin Entry */}
       <button 
         onClick={() => setView('curation')} 
@@ -156,6 +157,7 @@ const App: React.FC = () => {
   );
   if (view === 'encyclopedia') return <Encyclopedia onBack={() => setView('home')} />;
   if (view === 'curation') return <CurationTool onBack={() => setView('profile')} />;
+  if (view === 'promo') return <PromoStudio onBack={() => setView('profile')} />;
 
   if (view === 'home') {
     return (

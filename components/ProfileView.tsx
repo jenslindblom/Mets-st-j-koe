@@ -6,9 +6,10 @@ interface Props {
   profile: UserProfile;
   onBack: () => void;
   onLogout: () => void;
+  onOpenPromo: () => void;
 }
 
-const ProfileView: React.FC<Props> = ({ profile, onBack, onLogout }) => {
+const ProfileView: React.FC<Props> = ({ profile, onBack, onLogout, onOpenPromo }) => {
   // Defensive logic: Varmistetaan että sovellus ei kaadu vaikka data olisi viallista
   if (!profile) return null;
 
@@ -49,7 +50,15 @@ const ProfileView: React.FC<Props> = ({ profile, onBack, onLogout }) => {
           <div className="md:col-span-2 bg-white rounded-[3rem] shadow-xl p-8 md:p-12 border border-stone-100">
             <div className="flex items-center justify-between mb-10">
               <h3 className="text-xl font-black text-emerald-900 uppercase tracking-tight">Osaamiskartta</h3>
-              <span className="text-2xl">🗺️</span>
+              <div className="flex items-center space-x-3">
+                <button 
+                  onClick={onOpenPromo}
+                  className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-200 transition-colors"
+                >
+                  🎬 Luo mainosvideo
+                </button>
+                <span className="text-2xl">🗺️</span>
+              </div>
             </div>
             <div className="space-y-6">
               {Object.keys(groupStats).length > 0 ? (
