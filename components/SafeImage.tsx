@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 
 interface Props {
@@ -9,49 +10,35 @@ interface Props {
 
 function looksLikeWrongImage(url: string): boolean {
   try {
+    // Jos osoite on kuratoidusta "Special:FilePath" -lähteestä, se on todennäköisesti jo tarkistettu
+    if (url.includes('Special:FilePath')) return false;
+
     const u = new URL(url);
     const last = decodeURIComponent(u.pathname.split('/').pop() || '').toLowerCase();
     if (!last) return false;
 
-    // Jos ei ole tyypillinen rasterikuva, hylätään (svg/pdf jne.)
+    // Sallitut tiedostopäätteet
     const allowedExt = ['.jpg', '.jpeg', '.png', '.webp'];
     if (!allowedExt.some(ext => last.endsWith(ext))) return true;
 
-    // Normalisoi _ ja - välilyönneiksi helpottamaan osumia
-    const norm = last.replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
-
-    // Pahimmat "ei-toivotut"
-    const bad = [
-      'map',
-      'distribution',
-      'range',
-      'location map',
-      'locator',
-      'diagram',
-      'chart',
-      'graph',
-      'scheme',
-      'coat of arms',
-      'flag',
-      'logo',
-      'icon',
-      'emblem',
-      'skull',
-      'skeleton',
-      'bones',
-      'tracks',
-      'footprint',
-      'silhouette',
-      'illustration',
-      'drawing',
-      'painting',
-      'engraving',
-      'etching',
-      'plate',
-      'atlas',
+    // Kielletyt kuviot, jotka viittaavat ei-valokuviin (kartat, kaaviot jne.)
+    const forbiddenPatterns = [
+      /\bmap\b/, /\bdistribution\b/, /\brange\b/, /\blocator\b/,
+      /\bdiagram\b/, /\bchart\b/, /\bscheme\b/, /\bcoat of arms\b/,
+      /\bskull\b/, /\bskeleton\b/, /\bbones\b/, /\btracks\b/,
+      /\bfootprint\b/, /\bsilhouette\b/, /\btaxonomy\b/, /\batlas\b/
     ];
 
-    if (bad.some(w => norm.includes(w))) return true;
+    // Erityistarkistus "graph"-sanalle: sallitaan "geograph" ja "photograph"
+    if (last.includes('graph')) {
+      const isOfficialDoc = last.includes('geograph') || last.includes('photograph');
+      if (!isOfficialDoc) {
+        if (/\bgraph\b/.test(last.replace(/[_-]/g, ' '))) return true;
+      }
+    }
+
+    const norm = last.replace(/[_-]+/g, ' ');
+    if (forbiddenPatterns.some(pattern => pattern.test(norm))) return true;
 
     return false;
   } catch {
@@ -60,90 +47,59 @@ function looksLikeWrongImage(url: string): boolean {
 }
 
 const SafeImage: React.FC<Props> = ({ src, fallback, alt, className }) => {
-  const [currentSrc, setCurrentSrc] = useState<string>(src || '');
+  const [currentSrc, setCurrentSrc] = useState<string>('');
   const [hasFailedOnce, setHasFailedOnce] = useState(false);
-  const [loading, setLoading] = useState<boolean>(!!src);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // Kun src muuttuu ulkopuolelta, resetoidaan tila
   useEffect(() => {
     const nextSrc = src || '';
-
-    // Jos ei ole src:ää, näytä suoraan placeholder (ei spinneriä)
     if (!nextSrc) {
       setCurrentSrc('');
-      setHasFailedOnce(false);
       setLoading(false);
       return;
     }
 
-    // Heuristinen hylkäys väärille kuville
+    // Jos ensimmäinen kuva näyttää suodattimessa huonolta, kokeile heti varakuvaa
     if (looksLikeWrongImage(nextSrc)) {
-      console.warn(`Rejected likely-wrong image (heuristics): ${nextSrc}`);
-
-      if (fallback) {
-        // Tarkista fallback myös heuristiikalla; jos sekin näyttää huonolta -> placeholder
-        if (looksLikeWrongImage(fallback)) {
-          console.warn(`Rejected fallback (heuristics): ${fallback}`);
-          setCurrentSrc('');
-          setHasFailedOnce(true);
-          setLoading(false);
-        } else {
-          setCurrentSrc(fallback);
-          setHasFailedOnce(true);
-          setLoading(true);
-        }
+      if (fallback && !looksLikeWrongImage(fallback)) {
+        setCurrentSrc(fallback);
+        setHasFailedOnce(true);
       } else {
         setCurrentSrc('');
-        setHasFailedOnce(true);
-        setLoading(false);
       }
-      return;
+    } else {
+      setCurrentSrc(nextSrc);
+      setHasFailedOnce(false);
     }
-
-    setCurrentSrc(nextSrc);
-    setHasFailedOnce(false);
     setLoading(true);
   }, [src, fallback]);
 
   const handleError = () => {
-    console.warn(`Image load failed for: ${currentSrc}`);
-
-    if (!hasFailedOnce && fallback) {
-      // Vältetään myös fallbackin “selvästi väärät”
-      if (looksLikeWrongImage(fallback)) {
-        console.warn(`Rejected fallback after error (heuristics): ${fallback}`);
-        setCurrentSrc('');
-        setHasFailedOnce(true);
-        setLoading(false);
-      } else {
-        setCurrentSrc(fallback);
-        setHasFailedOnce(true);
-        setLoading(true);
-      }
-    } else {
-      // Ei enää satunnaisia kuvia: mieluummin rehellinen placeholder kuin väärä eläin
-      setCurrentSrc('');
+    // Jos pääkuva feilaa latauksessa (esim. 404 tai broken URL)
+    if (!hasFailedOnce && fallback && !looksLikeWrongImage(fallback)) {
+      setCurrentSrc(fallback);
       setHasFailedOnce(true);
+    } else {
+      setCurrentSrc('');
       setLoading(false);
     }
   };
 
   return (
     <div className={`relative bg-stone-200 overflow-hidden ${className || ''}`}>
-      {/* Placeholder jos kuva puuttuu tai ei lataudu */}
       {!currentSrc ? (
-        <div className="w-full h-full flex items-center justify-center bg-stone-200 text-stone-600 p-6 text-center">
-          Kuvaa ei saatavilla tälle lajille vielä.
+        <div className="w-full h-full flex items-center justify-center bg-stone-200 text-stone-500 p-6 text-center text-[10px] font-black uppercase tracking-widest leading-tight">
+          Ladataan tai kuvaa ei saatavilla
         </div>
       ) : (
         <>
           {loading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-stone-100">
-              <div className="w-8 h-8 border-4 border-emerald-900/20 border-t-emerald-900 rounded-full animate-spin"></div>
+            <div className="absolute inset-0 flex items-center justify-center bg-stone-100 z-10">
+              <div className="w-6 h-6 border-2 border-emerald-900/10 border-t-emerald-900 rounded-full animate-spin"></div>
             </div>
           )}
           <img
-            key={currentSrc} // Pakotetaan DOM-elementin uudelleenlataus kun URL vaihtuu
+            key={currentSrc}
             src={currentSrc}
             alt={alt}
             className={`w-full h-full object-cover transition-opacity duration-500 ${loading ? 'opacity-0' : 'opacity-100'}`}

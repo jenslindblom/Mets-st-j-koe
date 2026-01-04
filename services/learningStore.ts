@@ -5,6 +5,7 @@ import { leaderboardService } from './leaderboardService';
 export interface ProfileData {
   profile: UserProfile;
   errorCounts: Record<string, number>;
+  successCounts: Record<string, number>; // Lisätty onnistumisten seuranta
   quizErrorCounts: Record<string, number>;
   lastSeen: Record<string, number>;
 }
@@ -21,7 +22,8 @@ const INITIAL_ACHIEVEMENTS: Achievement[] = [
   { id: 'safety_guru', title: 'Turvallisuusguru', description: '100% oikein turvallisuusosiossa', icon: '🛡️' },
   { id: 'night_owl', title: 'Yökyöpeli', description: 'Opiskele yömyöhään', icon: '🦉' },
   { id: 'exam_master', title: 'Simulaattori-ässä', description: 'Läpäise koesimulaatio', icon: '🏅' },
-  { id: 'speed_demon', title: 'Pikakivääri', description: 'Sata pistettä pikatunnistuksessa', icon: '⚡' }
+  { id: 'speed_demon', title: 'Pikakivääri', description: 'Sata pistettä pikatunnistuksessa', icon: '⚡' },
+  { id: 'collector', title: 'Keräilijä', description: 'Tunnista 100 eri lajia vähintään kerran', icon: '📚' }
 ];
 
 export const learningStore = {
@@ -33,6 +35,7 @@ export const learningStore = {
       if (data.profiles) {
         Object.keys(data.profiles).forEach(id => {
           data.profiles[id].profile = this.hydrateProfile(data.profiles[id].profile);
+          if (!data.profiles[id].successCounts) data.profiles[id].successCounts = {};
         });
       }
       return data;
@@ -42,15 +45,33 @@ export const learningStore = {
   },
 
   hydrateProfile(p: any): UserProfile {
-    return {
+    const profile = {
       ...p,
       nickname: p.nickname || 'Metsästäjä',
       totalPoints: p.totalPoints || 0,
       level: p.level || 1,
+      streak: p.streak || 0,
+      dailyGoalProgress: p.dailyGoalProgress || 0,
       achievements: p.achievements || [...INITIAL_ACHIEVEMENTS],
       records: p.records || { exam: 0, matching: 0, speed: 0 },
       groupStats: p.groupStats || {}
     };
+
+    const now = new Date();
+    const todayStr = now.toDateString();
+    const lastDate = p.lastActivityDate ? new Date(p.lastActivityDate).toDateString() : null;
+
+    if (lastDate !== todayStr) {
+      profile.dailyGoalProgress = 0;
+      if (p.lastActivityDate) {
+        const diffDays = Math.floor((now.getTime() - p.lastActivityDate) / (1000 * 60 * 60 * 24));
+        if (diffDays > 1) {
+          profile.streak = 0;
+        }
+      }
+    }
+
+    return profile;
   },
 
   saveGlobalData(data: GlobalData) {
@@ -95,15 +116,39 @@ export const learningStore = {
         createdAt: Date.now(),
         totalPoints: 0,
         level: 1,
+        streak: 0,
+        dailyGoalProgress: 0,
         achievements: [...INITIAL_ACHIEVEMENTS],
         records: { exam: 0, matching: 0, speed: 0 },
         groupStats: {}
       },
       errorCounts: {},
+      successCounts: {},
       quizErrorCounts: {},
       lastSeen: {}
     };
     data.activeProfileId = nickname;
+    this.saveGlobalData(data);
+  },
+
+  updateDailyProgress() {
+    const data = this.getGlobalData();
+    const id = data.activeProfileId;
+    if (!id || !data.profiles[id]) return;
+    const pData = data.profiles[id];
+    
+    const now = new Date();
+    const todayStr = now.toDateString();
+    const lastDate = pData.profile.lastActivityDate ? new Date(pData.profile.lastActivityDate).toDateString() : null;
+
+    if (lastDate !== todayStr) {
+      pData.profile.streak += 1;
+      pData.profile.dailyGoalProgress = 1;
+    } else {
+      pData.profile.dailyGoalProgress += 1;
+    }
+    
+    pData.profile.lastActivityDate = now.getTime();
     this.saveGlobalData(data);
   },
 
@@ -123,6 +168,9 @@ export const learningStore = {
     });
     if (birdCorrect >= 50) this.unlockAchievement(pData, 'bird_expert');
 
+    const uniqueSuccesses = Object.keys(pData.successCounts || {}).length;
+    if (uniqueSuccesses >= 100) this.unlockAchievement(pData, 'collector');
+
     const newLevel = Math.floor(Math.sqrt(profile.totalPoints / 100)) + 1;
     profile.level = newLevel;
   },
@@ -141,6 +189,8 @@ export const learningStore = {
     
     const pData = data.profiles[id];
     pData.profile.totalPoints += score;
+
+    this.updateDailyProgress();
 
     if (type === 'exam' && score >= 45) {
       this.unlockAchievement(pData, 'exam_master');
@@ -191,6 +241,7 @@ export const learningStore = {
     if (!id || !data.profiles[id]) return;
     const pData = data.profiles[id];
     pData.quizErrorCounts[questionId] = (pData.quizErrorCounts[questionId] || 0) + 1;
+    this.updateDailyProgress();
     this.saveGlobalData(data);
   },
 
@@ -202,14 +253,8 @@ export const learningStore = {
     if (pData.quizErrorCounts[questionId] > 0) {
       pData.quizErrorCounts[questionId] = Math.max(0, pData.quizErrorCounts[questionId] - 0.5);
     }
+    this.updateDailyProgress();
     this.saveGlobalData(data);
-  },
-
-  getQuizWeight(questionId: string): number {
-    const pData = this.getActiveProfileData();
-    if (!pData) return 1;
-    const errors = pData.quizErrorCounts[questionId] || 0;
-    return 1 + (errors * 3);
   },
 
   recordError(speciesName: string, speciesGroup: string) {
@@ -220,6 +265,7 @@ export const learningStore = {
     pData.errorCounts[speciesName] = (pData.errorCounts[speciesName] || 0) + 1;
     pData.lastSeen[speciesName] = Date.now();
     this.recordSpeciesResult(speciesGroup, false);
+    this.updateDailyProgress();
     this.saveGlobalData(data);
   },
 
@@ -228,19 +274,35 @@ export const learningStore = {
     const id = data.activeProfileId;
     if (!id || !data.profiles[id]) return;
     const pData = data.profiles[id];
+    pData.successCounts[speciesName] = (pData.successCounts[speciesName] || 0) + 1;
     if (pData.errorCounts[speciesName] > 0) {
       pData.errorCounts[speciesName] = Math.max(0, pData.errorCounts[speciesName] - 0.5);
     }
     pData.lastSeen[speciesName] = Date.now();
     this.recordSpeciesResult(speciesGroup, true);
+    this.updateDailyProgress();
     this.saveGlobalData(data);
   },
 
+  getSpeciesStats(speciesName: string) {
+    const pData = this.getActiveProfileData();
+    if (!pData) return { success: 0, error: 0 };
+    return {
+      success: pData.successCounts[speciesName] || 0,
+      error: pData.errorCounts[speciesName] || 0
+    };
+  },
+
   getPriorityWeight(speciesName: string): number {
+    const stats = this.getSpeciesStats(speciesName);
+    return 1 + (stats.error * 2);
+  },
+
+  getQuizWeight(questionId: string): number {
     const pData = this.getActiveProfileData();
     if (!pData) return 1;
-    const errors = pData.errorCounts[speciesName] || 0;
-    return 1 + (errors * 2);
+    const errors = pData.quizErrorCounts[questionId] || 0;
+    return 1 + (errors * 3);
   },
 
   logout() {

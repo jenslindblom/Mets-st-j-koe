@@ -66,6 +66,9 @@ export interface UserProfile {
   createdAt: number;
   totalPoints: number;
   level: number;
+  streak: number;
+  lastActivityDate?: number;
+  dailyGoalProgress: number;
   achievements: Achievement[];
   records: {
     exam: number;

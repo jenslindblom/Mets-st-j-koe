@@ -1,7 +1,9 @@
 
 import { Species } from '../types';
+import { curationService } from './curationService';
 
 const categoryCache = new Map<string, Promise<string[]>>();
+const searchCache = new Map<string, Promise<string[]>>();
 
 export const getDeterministicLock = (name: string): number => {
   let hash = 0;
@@ -53,7 +55,10 @@ function normalizeCategoryTitle(categoryTitle: string): string {
   return categoryTitle.startsWith('Category:') ? categoryTitle : `Category:${categoryTitle}`;
 }
 
-async function fetchCategoryFiles(categoryTitleRaw: string): Promise<string[]> {
+/**
+ * Hakee tiedostoja tietystä kategoriasta.
+ */
+export async function fetchCategoryFiles(categoryTitleRaw: string): Promise<string[]> {
   const categoryTitle = normalizeCategoryTitle(categoryTitleRaw);
   if (categoryCache.has(categoryTitle)) return categoryCache.get(categoryTitle)!;
 
@@ -83,18 +88,61 @@ async function fetchCategoryFiles(categoryTitleRaw: string): Promise<string[]> {
   return promise;
 }
 
+/**
+ * Suorittaa vapaan tekstikuvan haun Commonsista. 
+ * Erinomainen silloin kun kategoriaa ei löydy.
+ */
+export async function searchCommonsFiles(query: string): Promise<string[]> {
+  if (searchCache.has(query)) return searchCache.get(query)!;
+
+  const promise = (async () => {
+    try {
+      // Käytetään MediaSearch APIa, joka on tarkoitettu kuvien hakemiseen
+      const url = `https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=50&prop=imageinfo&iiprop=url`;
+      const res = await fetch(url);
+      if (!res.ok) return [];
+      const data = await res.json();
+      
+      const pages = data?.query?.pages || {};
+      const titles = Object.values(pages).map((p: any) => p.title).filter(t => t && t.startsWith('File:'));
+
+      const filtered = titles
+        .map(t => ({ title: t, fileName: normalizeTitleToFileName(t) }))
+        .filter(x => hasAllowedExtension(x.fileName) && !isBannedByKeyword(x.fileName))
+        .map(x => ({ ...x, score: scoreFileName(x.fileName) }))
+        .sort((a, b) => b.score - a.score)
+        .map(x => x.title);
+
+      return filtered;
+    } catch {
+      return [];
+    }
+  })();
+
+  searchCache.set(query, promise);
+  return promise;
+}
+
 export async function resolveSpeciesImages(
   species: Species,
   width = 800
 ): Promise<{ imageUrl?: string; fallbackImageUrl?: string }> {
+  // 1. TARKISTA KURATOIDUT KUVAT
+  const lockedUrls = curationService.getLockedImages(species.name);
+  if (lockedUrls.length > 0) {
+    const randomIndex = Math.floor(Math.random() * lockedUrls.length);
+    return { imageUrl: lockedUrls[randomIndex] };
+  }
+
+  // 2. TARKISTA MANUAALINEN LISTA (CONSTANTS.TS)
   const lock = getDeterministicLock(species.name);
   const manual = species.images ?? [];
-  
   if (manual.length > 0) {
     const primary = manual[lock % manual.length].replace('/wiki/Special:FilePath/', '/wiki/Special:Redirect/file/');
     return { imageUrl: primary };
   }
 
+  // 3. AUTOMAATTINEN HAKU COMMONSISTA
   if (!species.commonsCategory) return {};
 
   const files = await fetchCategoryFiles(species.commonsCategory);

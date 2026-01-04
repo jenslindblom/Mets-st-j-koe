@@ -9,12 +9,15 @@ interface Props {
 }
 
 const ProfileView: React.FC<Props> = ({ profile, onBack, onLogout }) => {
-  // Varmistetaan että taulukot ja objektit ovat olemassa
+  // Defensive logic: Varmistetaan että sovellus ei kaadu vaikka data olisi viallista
+  if (!profile) return null;
+
   const achievements = profile.achievements || [];
   const groupStats = profile.groupStats || {};
-  const unlockedAchievements = achievements.filter(a => a.unlockedAt);
+  const unlockedAchievements = achievements.filter(a => a?.unlockedAt);
   const nickname = profile.nickname || 'Metsästäjä';
-  const records = profile.records || { exam: 0, matching: 0, speed: 0 };
+  const level = profile.level || 1;
+  const totalPoints = profile.totalPoints || 0;
   
   return (
     <div className="min-h-screen bg-stone-50 p-6 md:p-12 animate-fade-in">
@@ -33,10 +36,10 @@ const ProfileView: React.FC<Props> = ({ profile, onBack, onLogout }) => {
           <div className="flex items-center space-x-6">
              <div className="text-right">
                 <h2 className="text-3xl font-black text-emerald-900 leading-none">{nickname}</h2>
-                <p className="text-stone-400 text-xs font-black uppercase tracking-widest mt-1">Taso {profile.level || 1} Riistanhoitaja</p>
+                <p className="text-stone-400 text-xs font-black uppercase tracking-widest mt-1">Taso {level} Riistanhoitaja</p>
              </div>
              <div className="w-16 h-16 bg-emerald-700 text-white rounded-2xl flex items-center justify-center text-2xl font-black shadow-lg">
-                {nickname[0]?.toUpperCase()}
+                {nickname[0]?.toUpperCase() || 'M'}
              </div>
           </div>
         </header>
@@ -51,13 +54,14 @@ const ProfileView: React.FC<Props> = ({ profile, onBack, onLogout }) => {
             <div className="space-y-6">
               {Object.keys(groupStats).length > 0 ? (
                 Object.entries(groupStats).map(([group, stats]) => {
-                  const percentage = Math.round((stats.correct / stats.total) * 100) || 0;
+                  const s = stats || { correct: 0, total: 1 };
+                  const percentage = Math.round((s.correct / Math.max(1, s.total)) * 100) || 0;
                   return (
                     <div key={group} className="space-y-2">
                       <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
                         <span className="text-stone-500">{group}</span>
                         <span className={percentage > 80 ? 'text-emerald-600' : percentage > 50 ? 'text-amber-600' : 'text-rose-600'}>
-                          {percentage}% ({stats.correct}/{stats.total})
+                          {percentage}% ({s.correct}/{s.total})
                         </span>
                       </div>
                       <div className="h-4 bg-stone-100 rounded-full overflow-hidden">
@@ -101,8 +105,8 @@ const ProfileView: React.FC<Props> = ({ profile, onBack, onLogout }) => {
            <div className="flex items-center space-x-6">
               <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center text-3xl">✨</div>
               <div>
-                <h4 className="font-black text-emerald-900 text-lg">XP: {(profile.totalPoints || 0).toLocaleString()}</h4>
-                <p className="text-stone-400 text-xs font-bold uppercase tracking-widest">Taso {profile.level || 1}</p>
+                <h4 className="font-black text-emerald-900 text-lg">XP: {totalPoints.toLocaleString()}</h4>
+                <p className="text-stone-400 text-xs font-bold uppercase tracking-widest">Taso {level}</p>
               </div>
            </div>
            <div className="flex -space-x-2">

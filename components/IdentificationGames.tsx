@@ -1,5 +1,5 @@
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Question, QuestionType, Difficulty, Species } from '../types';
 import { SPECIES_DB } from '../constants';
 import SafeImage from './SafeImage';
@@ -42,19 +42,20 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
       return;
     }
 
-    const base = SPECIES_DB.filter(s => selectedGroups.includes(s.group));
-    // Rehellinen Fisher-Yates sekoitus ennen painotuksia
-    const randomized = [...base];
-    for (let i = randomized.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [randomized[i], randomized[j]] = [randomized[j], randomized[i]];
+    // 1. Aito sekoitus (Fisher-Yates)
+    const base = [...SPECIES_DB.filter(s => selectedGroups.includes(s.group))];
+    for (let i = base.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [base[i], base[j]] = [base[j], base[i]];
     }
 
-    const sessionPool = randomized.sort((a, b) => {
-      const weightA = learningStore.getPriorityWeight(a.name) + (Math.random() * 3);
-      const weightB = learningStore.getPriorityWeight(b.name) + (Math.random() * 3);
-      return weightB - weightA;
-    }).slice(0, 20);
+    // 2. Painotettu ja satunnaistettu valinta
+    const shuffled = [...base].sort(() => Math.random() - 0.5);
+    const sessionPool = shuffled
+      .map(s => ({ s, weight: learningStore.getPriorityWeight(s.name) + Math.random() * 10 }))
+      .sort((a, b) => b.weight - a.weight)
+      .slice(0, 15)
+      .map(x => x.s);
 
     const generated: Question[] = sessionPool.map((s, idx) => {
       const distractors = SPECIES_DB
@@ -64,13 +65,8 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
         .map(x => x.name);
 
       const options = [s.name, ...distractors].sort(() => Math.random() - 0.5);
-      if (options.length < 4) {
-        const extra = SPECIES_DB.filter(x => !options.includes(x.name)).sort(() => Math.random() - 0.5).slice(0, 4 - options.length).map(x => x.name);
-        options.push(...extra);
-      }
-
       return {
-        id: `game-${idx}`,
+        id: `game-${idx}-${Date.now()}`,
         type: QuestionType.IDENTIFICATION,
         difficulty: Difficulty.NORMAL,
         question: 'Mikä eläin on kyseessä?',
@@ -83,10 +79,6 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
 
     setQuestions(generated);
     setSpeedAnswers(new Array(generated.length).fill(null));
-    setCurrentIndex(0);
-    setScore(0);
-    setErrors(0);
-    setIsGameOver(false);
     setLoading(false);
 
     sessionPool.forEach((s, idx) => {
@@ -104,6 +96,7 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
   }, [selectedGroups]);
 
   const goToNext = () => {
+    if (!mountedRef.current) return;
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(prev => prev + 1);
       setIsFlipped(false);
@@ -120,7 +113,7 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
     setIsProcessing(true);
     if (isFlipped) {
       setIsFlipped(false);
-      setTimeout(goToNext, 400);
+      setTimeout(goToNext, 300);
     } else {
       goToNext();
     }
@@ -151,18 +144,21 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
       setErrors(e => e + 1);
     }
 
-    const newErrors = errors + (isCorrect ? 0 : 1);
+    const nextErrors = errors + (isCorrect ? 0 : 1);
     const isLast = currentIndex === questions.length - 1;
 
-    if (newErrors >= MAX_ERRORS) {
-      setGameOverReason('errors');
-      setTimeout(() => { if (mountedRef.current) setIsGameOver(true); }, 1000);
-    } else if (isLast) {
-      setGameOverReason('complete');
-      setTimeout(() => { if (mountedRef.current) setIsGameOver(true); }, 1000);
-    } else {
-      setTimeout(() => { if (mountedRef.current) goToNext(); }, 1000);
-    }
+    setTimeout(() => {
+      if (!mountedRef.current) return;
+      if (nextErrors >= MAX_ERRORS) {
+        setGameOverReason('errors');
+        setIsGameOver(true);
+      } else if (isLast) {
+        setGameOverReason('complete');
+        setIsGameOver(true);
+      } else {
+        goToNext();
+      }
+    }, 800);
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-stone-50"><div className="animate-spin rounded-full h-12 w-12 border-t-4 border-emerald-900"></div></div>;
@@ -193,14 +189,14 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
 
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col items-center p-4 md:p-8 animate-fade-in">
-      <div className="max-w-2xl w-full flex flex-col flex-1">
+      <div className="max-w-2xl w-full flex flex-col flex-1" key={current.id}>
         <div className="flex justify-between items-center mb-10">
           <button onClick={() => onExit()} className="text-stone-400 hover:text-emerald-800 font-black uppercase text-[10px] tracking-widest flex items-center"><svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"/></svg>Takaisin</button>
           <div className="flex items-center space-x-4">
             {mode === 'speed' && (
               <div className="flex space-x-1">
                 {[...Array(MAX_ERRORS)].map((_, i) => (
-                  <div key={i} className={`w-3 h-3 rounded-full ${i < errors ? 'bg-rose-500' : 'bg-stone-200'}`}></div>
+                  <div key={i} className={`w-3 h-3 rounded-full transition-colors ${i < errors ? 'bg-rose-500' : 'bg-stone-200'}`}></div>
                 ))}
               </div>
             )}
@@ -221,7 +217,7 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
               <div className="h-72 md:h-96 relative">
                 <SafeImage src={current.imageUrl} fallback={current.fallbackImageUrl} alt="Laji" className="w-full h-full" />
                 {speedAnswers[currentIndex] !== null && (
-                  <div className={`absolute inset-0 flex items-center justify-center backdrop-blur-sm ${speedAnswers[currentIndex] === current.correctIndex ? 'bg-emerald-500/20' : 'bg-rose-500/20'}`}>
+                  <div className={`absolute inset-0 flex items-center justify-center backdrop-blur-sm animate-fade-in ${speedAnswers[currentIndex] === current.correctIndex ? 'bg-emerald-500/20' : 'bg-rose-500/20'}`}>
                     <div className={`p-8 rounded-full shadow-2xl animate-scale-up ${speedAnswers[currentIndex] === current.correctIndex ? 'bg-emerald-600' : 'bg-rose-600'}`}>
                       <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         {speedAnswers[currentIndex] === current.correctIndex ? 
@@ -242,9 +238,9 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
                       speedAnswers[currentIndex] === null 
                         ? 'bg-white border-stone-100 hover:border-emerald-500 text-stone-700' 
                         : idx === current.correctIndex 
-                          ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-inner' 
+                          ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-inner scale-105' 
                           : idx === speedAnswers[currentIndex] 
-                            ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-inner' 
+                            ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-inner animate-shake' 
                             : 'bg-white border-stone-50 text-stone-200 opacity-40'
                     }`}
                   >
@@ -256,7 +252,7 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
           </div>
         )}
       </div>
-      <style>{`.perspective-1000 { perspective: 1000px; } .preserve-3d { transform-style: preserve-3d; } .backface-hidden { backface-visibility: hidden; } .rotate-y-180 { transform: rotateY(180deg); }`}</style>
+      <style>{`.perspective-1000 { perspective: 1000px; } .preserve-3d { transform-style: preserve-3d; } .backface-hidden { backface-visibility: hidden; } .rotate-y-180 { transform: rotateY(180deg); } .animate-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; } @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }`}</style>
     </div>
   );
 };

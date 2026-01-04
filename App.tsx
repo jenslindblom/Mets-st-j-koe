@@ -9,13 +9,17 @@ import MatchingGame from './components/MatchingGame';
 import ProfileSetup from './components/ProfileSetup';
 import ProfileView from './components/ProfileView';
 import Leaderboard from './components/Leaderboard';
+import Encyclopedia from './components/Encyclopedia';
+import CurationTool from './components/CurationTool';
 import { resolveSpeciesImages } from './services/commonsImages';
 import { uiFeedback } from './services/uiFeedbackService';
 import { learningStore } from './services/learningStore';
 
+const DAILY_GOAL = 15;
+
 const App: React.FC = () => {
   const [data, setData] = useState(learningStore.getData());
-  const [view, setView] = useState<'home' | 'quiz' | 'results' | 'game-select' | 'game-play' | 'leaderboard' | 'profile'>('home');
+  const [view, setView] = useState<'home' | 'quiz' | 'results' | 'game-select' | 'game-play' | 'leaderboard' | 'profile' | 'encyclopedia' | 'curation'>('home');
   const [gameMode, setGameMode] = useState<'flashcard' | 'speed' | 'matching'>('flashcard');
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
@@ -130,9 +134,7 @@ const App: React.FC = () => {
 
   if (!data.profile) return <ProfileSetup onComplete={() => setData(learningStore.getData())} />;
   
-  const profile = data.profile; // Varmistettu olemassaolo yllä
-  
-  // Lasketaan taso-XP:t Tinder-tyylistä palkkia varten
+  const profile = data.profile; 
   const currentXP = profile.totalPoints || 0;
   const currentLevel = profile.level || 1;
   const nextLevelXP = Math.pow(currentLevel, 2) * 100;
@@ -140,37 +142,75 @@ const App: React.FC = () => {
   const progressPercent = Math.min(100, Math.max(0, ((currentXP - currentLevelBaseXP) / (nextLevelXP - currentLevelBaseXP)) * 100));
 
   if (view === 'leaderboard') return <Leaderboard onBack={() => setView('home')} />;
-  if (view === 'profile') return <ProfileView profile={profile} onBack={() => setView('home')} onLogout={handleLogout} />;
+  if (view === 'profile') return (
+    <div className="relative h-screen">
+      <ProfileView profile={profile} onBack={() => setView('home')} onLogout={handleLogout} />
+      {/* Hidden Admin Entry */}
+      <button 
+        onClick={() => setView('curation')} 
+        className="fixed bottom-4 right-4 w-10 h-10 bg-stone-200 text-stone-400 rounded-full flex items-center justify-center opacity-20 hover:opacity-100 transition-opacity"
+      >
+        ⚙️
+      </button>
+    </div>
+  );
+  if (view === 'encyclopedia') return <Encyclopedia onBack={() => setView('home')} />;
+  if (view === 'curation') return <CurationTool onBack={() => setView('profile')} />;
 
   if (view === 'home') {
     return (
       <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-4 md:p-6 overflow-x-hidden">
         <div className="max-w-4xl w-full text-center space-y-6 md:space-y-10 animate-fade-in">
           <header className="space-y-6">
-            <div className="flex flex-col items-center space-y-3">
-              <div className="inline-flex items-center px-5 py-2.5 bg-emerald-100 rounded-full shadow-sm border border-emerald-200">
-                <span className="text-emerald-950 font-black text-sm tracking-tight">
-                  Tervehdys, <span className="underline decoration-emerald-500/30 text-emerald-900">{profile.nickname}</span>!
-                </span>
+            <div className="flex flex-col items-center space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="inline-flex items-center px-5 py-2.5 bg-emerald-100 rounded-full shadow-sm border border-emerald-200">
+                  <span className="text-emerald-950 font-black text-sm tracking-tight">
+                    Tervehdys, <span className="underline decoration-emerald-500/30 text-emerald-900">{profile.nickname}</span>!
+                  </span>
+                </div>
+                {profile.streak > 0 && (
+                  <div className="flex items-center space-x-1.5 px-4 py-2 bg-orange-100 text-orange-600 rounded-full border border-orange-200 animate-pulse">
+                    <span className="text-lg">🔥</span>
+                    <span className="font-black text-sm">{profile.streak}</span>
+                  </div>
+                )}
               </div>
               
-              {/* XP-palkki (Tinder-tyylinen koukku) */}
-              <div className="w-full max-w-xs space-y-1">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-emerald-800">
-                  <span>Taso {currentLevel}</span>
-                  <span>{currentXP} / {nextLevelXP} XP</span>
+              <div className="w-full max-w-sm grid grid-cols-1 md:grid-cols-2 gap-4 px-4">
+                <div className="space-y-1.5 text-left">
+                  <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-emerald-800">
+                    <span>Taso {currentLevel}</span>
+                    <span>{currentXP} / {nextLevelXP} XP</span>
+                  </div>
+                  <div className="h-3 bg-stone-200 rounded-full overflow-hidden shadow-inner border border-white">
+                    <div 
+                      className="h-full bg-emerald-500 transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="h-2 bg-stone-200 rounded-full overflow-hidden shadow-inner">
-                  <div 
-                    className="h-full bg-emerald-500 transition-all duration-1000 ease-out"
-                    style={{ width: `${progressPercent}%` }}
-                  />
+
+                <div className="space-y-1.5 text-left">
+                  <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-emerald-800">
+                    <span>Päivän tavoite</span>
+                    <span>{profile.dailyGoalProgress} / {DAILY_GOAL}</span>
+                  </div>
+                  <div className="h-3 bg-stone-200 rounded-full overflow-hidden shadow-inner border border-white">
+                    <div 
+                      className="h-full bg-orange-400 transition-all duration-500 ease-out"
+                      style={{ width: `${Math.min(100, (profile.dailyGoalProgress / DAILY_GOAL) * 100)}%` }}
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="flex space-x-4 pt-2">
+              <div className="flex space-x-4">
                 <button onClick={() => setView('profile')} className="text-[11px] text-emerald-600 font-black hover:text-emerald-800 uppercase tracking-[0.2em] transition-colors">
                   Minun profiili
+                </button>
+                <button onClick={() => setView('encyclopedia')} className="text-[11px] text-blue-600 font-black hover:text-blue-800 uppercase tracking-[0.2em] transition-colors">
+                  Lajikirja
                 </button>
                 <button onClick={handleLogout} className="text-[11px] text-rose-500 font-black hover:text-rose-700 uppercase tracking-[0.2em] transition-colors">
                   Kirjaudu ulos
@@ -181,7 +221,7 @@ const App: React.FC = () => {
               Metsästäjä<br className="hidden sm:block" />simulaattori
             </h1>
             <p className="text-lg sm:text-2xl text-stone-600 max-w-xl mx-auto leading-relaxed px-4 font-medium">
-              Varmista metsästyskokeen läpäisy älykkäällä harjoittelulla.
+              Varmista kokeen läpäisy älykkäällä harjoittelulla.
             </p>
           </header>
 
@@ -214,7 +254,6 @@ const App: React.FC = () => {
     );
   }
 
-  // Muut näkymät jatkuvat ennallaan...
   if (view === 'game-select') {
     return (
       <div className="min-h-screen bg-stone-50 p-6 flex items-center justify-center animate-fade-in">
@@ -268,7 +307,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-stone-50 flex flex-col font-sans">
       {showFeedbackModal && !state.isExamMode && selectedAnswer !== null && currentQuestion && <FeedbackModal question={currentQuestion} selectedAnswer={selectedAnswer} onNext={() => { setShowFeedbackModal(false); if (isLastQuestion) finishQuiz(); else setState(prev => ({ ...prev, currentQuestionIndex: prev.currentQuestionIndex + 1 })); }} onClose={() => setShowFeedbackModal(false)} isLast={isLastQuestion} />}
       <nav className="bg-emerald-950 text-white p-5 shadow-2xl sticky top-0 z-[60] border-b border-emerald-900/50"><div className="max-w-6xl mx-auto flex items-center justify-between"><h2 className="text-sm font-black tracking-[0.3em] uppercase">Metsästäjäsimulaattori</h2><button onClick={() => setView('home')} className="text-emerald-400 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors border border-emerald-800 px-4 py-2 rounded-full">Lopeta</button></div></nav>
-      <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-10"><div className="bg-white rounded-[3rem] shadow-2xl p-6 md:p-14 border border-stone-100 relative overflow-hidden animate-slide-up">{currentQuestion && <QuestionDisplay question={currentQuestion} selectedAnswer={selectedAnswer} onSelect={selectAnswer} showFeedback={!state.isExamMode && selectedAnswer !== null} />}<div className="mt-14 flex items-center justify-between pt-10 border-t border-stone-50"><button onClick={() => setState(prev => ({...prev, currentQuestionIndex: prev.currentQuestionIndex - 1}))} disabled={state.currentQuestionIndex === 0} className="px-6 py-3 text-stone-300 disabled:opacity-30 font-black uppercase tracking-widest text-[10px]">Edellinen</button><button onClick={() => isLastQuestion ? finishQuiz() : setState(prev => ({ ...prev, currentQuestionIndex: prev.currentQuestionIndex + 1 }))} disabled={selectedAnswer === null} className="px-10 py-4 bg-emerald-800 text-white rounded-2xl font-black shadow-2xl active:scale-95 transition-all text-xs uppercase tracking-widest">{isLastQuestion ? 'Valmis' : 'Seuraava'}</button></div></div></main>
+      <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-10"><div className="bg-white rounded-[3rem] shadow-2xl p-6 md:p-14 border border-stone-100 relative overflow-hidden animate-slide-up">{currentQuestion && <QuestionDisplay question={currentQuestion} selectedAnswer={selectedAnswer} onSelect={selectAnswer} showFeedback={!state.isExamMode && selectedAnswer !== null} />}<div className="mt-14 flex items-center justify-between pt-10 border-t border-stone-50"><button onClick={() => setState(prev => ({...prev, currentQuestionIndex: prev.currentQuestionIndex - 1}))} disabled={state.currentQuestionIndex === 0} className="px-6 py-3 text-stone-300 disabled:opacity-30 font-black uppercase tracking-widest text-[10px]">Edellinen</button><button onClick={() => isLastQuestion ? finishQuiz() : setState(prev => ({ ...prev, currentQuestionIndex: prev.currentQuestionIndex + 1 }))} disabled={selectedAnswer === null} className="px-10 py-4 bg-emerald-800 text-white rounded-2xl font-black shadow-xl active:scale-95 transition-all text-xs uppercase tracking-widest">{isLastQuestion ? 'Valmis' : 'Seuraava'}</button></div></div></main>
     </div>
   );
 };
