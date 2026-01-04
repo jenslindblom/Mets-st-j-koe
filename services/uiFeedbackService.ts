@@ -2,26 +2,24 @@
 export const uiFeedback = {
   // Syntetisoitu onnistumisääni (iloinen "pling")
   playSuccess() {
-    this.vibrate(50);
+    this.vibrate(40); // Lyhyt, pehmeä tärinä
     this.playSound(587.33, 'triangle', 0.1, 0.2); // D5
     setTimeout(() => this.playSound(880.00, 'triangle', 0.1, 0.2), 100); // A5
   },
 
   // Syntetisoitu virheääni (matala "buzz")
   playError() {
-    this.vibrate([100, 50, 100]);
+    this.vibrate([150, 100, 150]); // Voimakkaampi "kaksois-thud"
     this.playSound(220, 'sawtooth', 0.2, 0.3); // A3
     this.playSound(110, 'sawtooth', 0.2, 0.3); // A2
   },
 
-  // Fix: Removed 'private' modifier as it is not allowed in object literals
   vibrate(pattern: number | number[]) {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       navigator.vibrate(pattern);
     }
   },
 
-  // Fix: Removed 'private' modifier as it is not allowed in object literals
   playSound(freq: number, type: OscillatorType, volume: number, duration: number) {
     try {
       const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;

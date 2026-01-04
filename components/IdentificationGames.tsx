@@ -55,7 +55,6 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
     const sessionSize = Math.min(20, filteredSpecies.length);
     const sessionPool = filteredSpecies.slice(0, sessionSize);
 
-    // LUODAAN KYSYMYKSET VÄLITTÖMÄSTI ILMAN KUVIA
     const generated: Question[] = sessionPool.map((s, idx) => {
       const distractors = SPECIES_DB
         .filter(x => x.name !== s.name && x.group === s.group)
@@ -85,14 +84,13 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
     setSpeedAnswers(new Array(generated.length).fill(null));
     setLoading(false);
 
-    // HAETAAN KUVAT ASYNKRONISESTI TAUSTALLA
     sessionPool.forEach((s, idx) => {
       resolveSpeciesImages(s, 800).then(imgRes => {
         if (!mountedRef.current || seq !== seqRef.current) return;
         setQuestions(prev => {
           const next = [...prev];
           if (next[idx]) {
-            next[idx] = { ...next[idx], imageUrl: imgRes.imageUrl, fallbackImageUrl: imgRes.fallbackImageUrl };
+            next[idx] = { ...next[idx], imageUrl: imgRes.imageUrl, fallbackImageUrl: imgRes.fallbackImageUrl, imageCaption: s.group };
           }
           return next;
         });
@@ -124,6 +122,7 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
     if (speedAnswers[currentIndex] !== null || isTransitioning) return;
     const currentQ = questions[currentIndex];
     const correctName = currentQ.options[currentQ.correctIndex];
+    const groupName = currentQ.imageCaption || 'Muut';
     const isCorrect = index === currentQ.correctIndex;
     
     const nextAnswers = [...speedAnswers];
@@ -133,11 +132,11 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
     if (isCorrect) {
       uiFeedback.playSuccess();
       setScore(prev => prev + 1);
-      learningStore.recordSuccess(correctName);
+      learningStore.recordSuccess(correctName, groupName);
       setTimeout(handleNext, 800);
     } else {
       uiFeedback.playError();
-      learningStore.recordError(correctName);
+      learningStore.recordError(correctName, groupName);
       const newErrors = errors + 1;
       setErrors(newErrors);
       if (newErrors >= MAX_ERRORS) {
@@ -155,7 +154,7 @@ const IdentificationGames: React.FC<Props> = ({ mode, selectedGroups, onExit }) 
       <div className="max-w-md w-full bg-white rounded-[3rem] shadow-2xl p-12 text-center animate-scale-up">
         <h2 className="text-3xl font-black text-emerald-900 mb-2">{gameOverReason === 'errors' ? 'Peli päättyi' : 'Hyvää työtä!'}</h2>
         <div className="bg-stone-50 p-8 rounded-[2rem] my-8"><p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Pisteet</p><p className="text-6xl font-black text-emerald-900">{score} / {questions.length}</p></div>
-        <button onClick={() => onExit(mode === 'speed' ? score * 100 : score * 10)} className="w-full py-5 bg-emerald-800 text-white rounded-2xl font-black shadow-xl active:scale-95 transition-transform uppercase tracking-widest text-xs">Lopeta</button>
+        <button onClick={() => onExit(mode === 'speed' ? score * 10 : score * 5)} className="w-full py-5 bg-emerald-800 text-white rounded-2xl font-black shadow-xl active:scale-95 transition-transform uppercase tracking-widest text-xs">Lopeta</button>
       </div>
     </div>
   );

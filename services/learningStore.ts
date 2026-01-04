@@ -1,5 +1,5 @@
 
-import { UserProfile } from '../types';
+import { UserProfile, Achievement, QuestionType } from '../types';
 import { leaderboardService } from './leaderboardService';
 
 export interface ProfileData {
@@ -15,6 +15,14 @@ export interface GlobalData {
 }
 
 const STORAGE_KEY = 'metsastaja_sim_v3';
+
+const INITIAL_ACHIEVEMENTS: Achievement[] = [
+  { id: 'bird_expert', title: 'Lintuasiantuntija', description: 'Tunnista 50 lintulajia', icon: '🦆' },
+  { id: 'safety_guru', title: 'Turvallisuusguru', description: '100% oikein turvallisuusosiossa', icon: '🛡️' },
+  { id: 'night_owl', title: 'Yökyöpeli', description: 'Opiskele yömyöhään', icon: '🦉' },
+  { id: 'exam_master', title: 'Simulaattori-ässä', description: 'Läpäise koesimulaatio', icon: '🏅' },
+  { id: 'speed_demon', title: 'Pikakivääri', description: 'Sata pistettä pikatunnistuksessa', icon: '⚡' }
+];
 
 export const learningStore = {
   getGlobalData(): GlobalData {
@@ -53,6 +61,11 @@ export const learningStore = {
     this.saveGlobalData(data);
   },
 
+  nicknameExists(nickname: string): boolean {
+    const data = this.getGlobalData();
+    return !!data.profiles[nickname];
+  },
+
   createProfile(nickname: string) {
     const data = this.getGlobalData();
     if (data.profiles[nickname]) return;
@@ -62,7 +75,10 @@ export const learningStore = {
         nickname,
         createdAt: Date.now(),
         totalPoints: 0,
-        records: { exam: 0, matching: 0, speed: 0 }
+        level: 1,
+        achievements: INITIAL_ACHIEVEMENTS,
+        records: { exam: 0, matching: 0, speed: 0 },
+        groupStats: {}
       },
       errorCounts: {},
       quizErrorCounts: {},
@@ -72,25 +88,81 @@ export const learningStore = {
     this.saveGlobalData(data);
   },
 
-  updateRecord(type: 'exam' | 'matching' | 'speed', score: number) {
+  checkAchievements(pData: ProfileData) {
+    const profile = pData.profile;
+    const now = new Date();
+    
+    // Yökyöpeli
+    if (now.getHours() >= 22 || now.getHours() <= 4) {
+      this.unlockAchievement(pData, 'night_owl');
+    }
+
+    // Lintuasiantuntija (Vesilinnut + Metsäkanalinnut onnistumiset > 50)
+    let birdCorrect = 0;
+    Object.keys(profile.groupStats).forEach(group => {
+      if (group.toLowerCase().includes('linnu')) {
+        birdCorrect += profile.groupStats[group].correct;
+      }
+    });
+    if (birdCorrect >= 50) this.unlockAchievement(pData, 'bird_expert');
+
+    // Tason laskenta XP:stä
+    const newLevel = Math.floor(Math.sqrt(profile.totalPoints / 100)) + 1;
+    profile.level = newLevel;
+  },
+
+  unlockAchievement(pData: ProfileData, id: string) {
+    const ach = pData.profile.achievements.find(a => a.id === id);
+    if (ach && !ach.unlockedAt) {
+      ach.unlockedAt = Date.now();
+    }
+  },
+
+  updateRecord(type: 'exam' | 'matching' | 'speed', score: number, results?: any) {
     const data = this.getGlobalData();
     const id = data.activeProfileId;
     if (!id || !data.profiles[id]) return;
     
     const pData = data.profiles[id];
     pData.profile.totalPoints += score;
+
+    if (type === 'exam' && score >= 45) {
+      this.unlockAchievement(pData, 'exam_master');
+      if (results?.categoryScores?.[QuestionType.SAFETY]?.correct === results?.categoryScores?.[QuestionType.SAFETY]?.total) {
+        this.unlockAchievement(pData, 'safety_guru');
+      }
+    }
+
+    if (type === 'speed' && score >= 100) {
+      this.unlockAchievement(pData, 'speed_demon');
+    }
     
-    // Tarkistetaan onko uusi ennätys
     if (score > pData.profile.records[type]) {
       pData.profile.records[type] = score;
-      
-      // SYNKRONOINTI GLOBAALISTI:
       leaderboardService.submitScore({
         nickname: pData.profile.nickname,
         score: score,
         type: type
       });
     }
+
+    this.checkAchievements(pData);
+    this.saveGlobalData(data);
+  },
+
+  recordSpeciesResult(speciesGroup: string, isCorrect: boolean) {
+    const data = this.getGlobalData();
+    const id = data.activeProfileId;
+    if (!id || !data.profiles[id]) return;
+    const pData = data.profiles[id];
+    
+    if (!pData.profile.groupStats[speciesGroup]) {
+      pData.profile.groupStats[speciesGroup] = { correct: 0, total: 0 };
+    }
+    
+    pData.profile.groupStats[speciesGroup].total += 1;
+    if (isCorrect) pData.profile.groupStats[speciesGroup].correct += 1;
+    
     this.saveGlobalData(data);
   },
 
@@ -121,17 +193,18 @@ export const learningStore = {
     return 1 + (errors * 3);
   },
 
-  recordError(speciesName: string) {
+  recordError(speciesName: string, speciesGroup: string) {
     const data = this.getGlobalData();
     const id = data.activeProfileId;
     if (!id || !data.profiles[id]) return;
     const pData = data.profiles[id];
     pData.errorCounts[speciesName] = (pData.errorCounts[speciesName] || 0) + 1;
     pData.lastSeen[speciesName] = Date.now();
+    this.recordSpeciesResult(speciesGroup, false);
     this.saveGlobalData(data);
   },
 
-  recordSuccess(speciesName: string) {
+  recordSuccess(speciesName: string, speciesGroup: string) {
     const data = this.getGlobalData();
     const id = data.activeProfileId;
     if (!id || !data.profiles[id]) return;
@@ -140,6 +213,7 @@ export const learningStore = {
       pData.errorCounts[speciesName] = Math.max(0, pData.errorCounts[speciesName] - 0.5);
     }
     pData.lastSeen[speciesName] = Date.now();
+    this.recordSpeciesResult(speciesGroup, true);
     this.saveGlobalData(data);
   },
 

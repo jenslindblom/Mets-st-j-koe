@@ -14,6 +14,7 @@ interface Props {
 interface MatchingPair {
   id: string;
   name: string;
+  group: string;
   imageUrl?: string;
   fallbackImageUrl?: string;
 }
@@ -58,7 +59,7 @@ const MatchingGame: React.FC<Props> = ({ selectedGroups, onExit }) => {
     const selected = weighted.slice(0, count).sort(() => Math.random() - 0.5);
 
     // KÄYNNISTETÄÄN PELI HETI ILMAN KUVIA
-    const initialPairs: MatchingPair[] = selected.map(s => ({ id: s.name, name: s.name }));
+    const initialPairs: MatchingPair[] = selected.map(s => ({ id: s.name, name: s.name, group: s.group }));
     setPairs(initialPairs);
     setShuffledNames([...initialPairs].sort(() => Math.random() - 0.5));
     setMatches(new Set());
@@ -85,6 +86,10 @@ const MatchingGame: React.FC<Props> = ({ selectedGroups, onExit }) => {
 
   const checkMatch = (nameId: string | null, imageId: string | null) => {
     if (!nameId || !imageId) return;
+
+    // Find the group name for learningStore
+    const group = shuffledNames.find(p => p.id === nameId)?.group || 'Muut';
+
     if (nameId === imageId) {
       uiFeedback.playSuccess();
       const nextMatches = new Set(matches);
@@ -93,14 +98,16 @@ const MatchingGame: React.FC<Props> = ({ selectedGroups, onExit }) => {
       setScore(s => s + 10);
       setSelectedNameId(null);
       setSelectedImageId(null);
-      learningStore.recordSuccess(nameId);
+      // Fix: learningStore.recordSuccess requires two arguments (speciesName, speciesGroup)
+      learningStore.recordSuccess(nameId, group);
       if (nextMatches.size === pairs.length) {
         setTimeout(loadNewSet, 800);
       }
     } else {
       uiFeedback.playError();
       setWrongFlash(nameId);
-      learningStore.recordError(nameId);
+      // Fix: learningStore.recordError requires two arguments (speciesName, speciesGroup)
+      learningStore.recordError(nameId, group);
       const newErrors = errors + 1;
       setErrors(newErrors);
       if (newErrors >= MAX_ERRORS) {

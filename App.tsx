@@ -7,6 +7,7 @@ import FeedbackModal from './components/FeedbackModal';
 import IdentificationGames from './components/IdentificationGames';
 import MatchingGame from './components/MatchingGame';
 import ProfileSetup from './components/ProfileSetup';
+import ProfileView from './components/ProfileView';
 import Leaderboard from './components/Leaderboard';
 import { resolveSpeciesImages } from './services/commonsImages';
 import { uiFeedback } from './services/uiFeedbackService';
@@ -14,7 +15,7 @@ import { learningStore } from './services/learningStore';
 
 const App: React.FC = () => {
   const [data, setData] = useState(learningStore.getData());
-  const [view, setView] = useState<'home' | 'quiz' | 'results' | 'game-select' | 'game-play' | 'leaderboard'>('home');
+  const [view, setView] = useState<'home' | 'quiz' | 'results' | 'game-select' | 'game-play' | 'leaderboard' | 'profile'>('home');
   const [gameMode, setGameMode] = useState<'flashcard' | 'speed' | 'matching'>('flashcard');
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
@@ -31,7 +32,6 @@ const App: React.FC = () => {
   const allGroups = Array.from(new Set(SPECIES_DB.map(s => s.group)));
   const [selectedGroups, setSelectedGroups] = useState<string[]>(allGroups);
 
-  // Optimoidaan esilataus: Ei odoteta Promiseja, vaan annetaan selaimen ladata taustalla
   useEffect(() => {
     if (view === 'game-select') {
       const speciesToLoad = SPECIES_DB
@@ -95,7 +95,6 @@ const App: React.FC = () => {
     return { score, total: state.questions.length, passed: score >= PASS_MARK, categoryScores };
   };
 
-  // Fix: Added selectAnswer to handle user selection and tracking
   const selectAnswer = (index: number) => {
     setState(prev => {
       const newUserAnswers = [...prev.userAnswers];
@@ -116,18 +115,16 @@ const App: React.FC = () => {
     }
   };
 
-  // Fix: Added finishQuiz to finalize the quiz, save records and navigate to results
   const finishQuiz = () => {
     const results = calculateResults();
-    if (state.isExamMode) {
-      learningStore.updateRecord('exam', results.score);
-    }
+    learningStore.updateRecord(state.isExamMode ? 'exam' : 'speed', results.score, results);
     setData(learningStore.getData());
     setView('results');
   };
 
   if (!data.profile) return <ProfileSetup onComplete={() => setData(learningStore.getData())} />;
   if (view === 'leaderboard') return <Leaderboard onBack={() => setView('home')} />;
+  if (view === 'profile' && data.profile) return <ProfileView profile={data.profile} onBack={() => setView('home')} />;
 
   if (view === 'home') {
     return (
@@ -140,9 +137,14 @@ const App: React.FC = () => {
                   Tervehdys, <span className="underline decoration-emerald-500/30 text-emerald-900">{data.profile.nickname}</span>!
                 </span>
               </div>
-              <button onClick={() => { learningStore.logout(); setData({ profile: null }); }} className="text-[11px] text-stone-400 font-black hover:text-emerald-700 uppercase tracking-[0.2em] transition-colors">
-                Vaihda käyttäjää
-              </button>
+              <div className="flex space-x-4">
+                <button onClick={() => setView('profile')} className="text-[11px] text-emerald-600 font-black hover:text-emerald-800 uppercase tracking-[0.2em] transition-colors">
+                  Minun profiili
+                </button>
+                <button onClick={() => { learningStore.logout(); setData({ profile: null }); }} className="text-[11px] text-stone-400 font-black hover:text-emerald-700 uppercase tracking-[0.2em] transition-colors">
+                  Vaihda käyttäjää
+                </button>
+              </div>
             </div>
             <h1 className="text-4xl sm:text-6xl md:text-8xl font-black text-emerald-900 tracking-tighter leading-[0.9] text-balance">
               Metsästäjä<br className="hidden sm:block" />simulaattori

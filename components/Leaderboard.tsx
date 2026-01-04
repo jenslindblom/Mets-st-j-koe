@@ -8,10 +8,11 @@ interface Props {
 }
 
 const Leaderboard: React.FC<Props> = ({ onBack }) => {
-  const [activeTab, setActiveTab] = useState<'local' | 'global'>('local');
+  // Asetetaan oletukseksi 'global' ja 'matching'
+  const [activeTab, setActiveTab] = useState<'local' | 'global'>('global');
+  const [globalType, setGlobalType] = useState<'exam' | 'matching' | 'speed'>('matching');
   const [globalScores, setGlobalScores] = useState<GlobalScore[]>([]);
   const [loadingGlobal, setLoadingGlobal] = useState(false);
-  const [globalType, setGlobalType] = useState<'exam' | 'matching' | 'speed'>('exam');
 
   const data = learningStore.getData();
   const profile = data.profile;
@@ -38,21 +39,21 @@ const Leaderboard: React.FC<Props> = ({ onBack }) => {
     <div className="min-h-screen bg-stone-50 p-6 md:p-12 animate-fade-in">
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
-          <button onClick={onBack} className="text-emerald-800 font-bold flex items-center hover:underline self-start md:self-center">
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>
+          <button onClick={onBack} className="text-emerald-800 font-black flex items-center hover:underline self-start md:self-center uppercase text-[10px] tracking-[0.2em]">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"/></svg>
             Takaisin
           </button>
           
           <div className="bg-stone-200 p-1.5 rounded-[1.5rem] shadow-inner flex w-full md:w-auto">
             <button 
               onClick={() => setActiveTab('local')}
-              className={`flex-1 md:flex-none px-8 py-3 rounded-[1.2rem] text-xs font-black transition-all ${activeTab === 'local' ? 'bg-white text-emerald-900 shadow-lg scale-105' : 'text-stone-500 hover:text-stone-700'}`}
+              className={`flex-1 md:flex-none px-8 py-3 rounded-[1.2rem] text-[10px] font-black transition-all tracking-widest ${activeTab === 'local' ? 'bg-white text-emerald-900 shadow-lg scale-105' : 'text-stone-500 hover:text-stone-700'}`}
             >
               TÄMÄ LAITE
             </button>
             <button 
               onClick={() => setActiveTab('global')}
-              className={`flex-1 md:flex-none px-8 py-3 rounded-[1.2rem] text-xs font-black transition-all ${activeTab === 'global' ? 'bg-white text-emerald-900 shadow-lg scale-105' : 'text-stone-500 hover:text-stone-700'}`}
+              className={`flex-1 md:flex-none px-8 py-3 rounded-[1.2rem] text-[10px] font-black transition-all tracking-widest ${activeTab === 'global' ? 'bg-white text-emerald-900 shadow-lg scale-105' : 'text-stone-500 hover:text-stone-700'}`}
             >
               MAAILMANLISTA
             </button>
@@ -82,7 +83,7 @@ const Leaderboard: React.FC<Props> = ({ onBack }) => {
             <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-stone-100">
               <div className="bg-emerald-900 px-10 py-8 text-white flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-bold font-serif uppercase tracking-widest">Laitteen parhaat</h3>
+                  <h3 className="text-xl font-black uppercase tracking-widest">Laitteen parhaat</h3>
                   <p className="text-emerald-300 text-[10px] mt-1 uppercase tracking-widest font-bold">Sinun ja ystäviesi paikallinen sijoitus</p>
                 </div>
                 <span className="text-3xl">📱</span>
@@ -114,16 +115,16 @@ const Leaderboard: React.FC<Props> = ({ onBack }) => {
           <div className="animate-slide-up space-y-8">
             <div className="flex flex-wrap justify-center gap-2">
               {[
-                { id: 'exam', label: 'Koe', icon: '📝' },
                 { id: 'matching', label: 'Yhdistely', icon: '🧩' },
+                { id: 'exam', label: 'Koe', icon: '📝' },
                 { id: 'speed', label: 'Pika', icon: '⚡' }
               ].map(t => (
                 <button 
                   key={t.id}
                   onClick={() => setGlobalType(t.id as any)}
-                  className={`px-8 py-3 rounded-2xl text-xs font-black border-2 transition-all flex items-center space-x-2 ${globalType === t.id ? 'bg-emerald-900 border-emerald-900 text-white shadow-lg scale-105' : 'bg-white border-stone-200 text-stone-400 hover:border-stone-400'}`}
+                  className={`px-8 py-3 rounded-2xl text-[10px] font-black border-2 transition-all flex items-center space-x-2 ${globalType === t.id ? 'bg-emerald-900 border-emerald-900 text-white shadow-lg scale-105' : 'bg-white border-stone-200 text-stone-400 hover:border-stone-400'}`}
                 >
-                  <span>{t.icon}</span>
+                  <span className="text-base">{t.icon}</span>
                   <span className="uppercase tracking-widest">{t.label}</span>
                 </button>
               ))}
@@ -134,21 +135,17 @@ const Leaderboard: React.FC<Props> = ({ onBack }) => {
                 <div className="w-20 h-20 bg-amber-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
                   <span className="text-4xl">🔗</span>
                 </div>
-                <h3 className="text-2xl font-black text-stone-800 mb-3 font-serif">Yhdistä maailmaan</h3>
+                <h3 className="text-2xl font-black text-stone-800 mb-3 uppercase tracking-tighter">Yhdistä maailmaan</h3>
                 <p className="text-stone-500 text-sm max-w-sm mx-auto leading-relaxed mb-8">
                   Globaali tulostaulu vaatii Supabase-yhteyden. Syötä URL ja API-avain palveluun nähdäksesi muiden metsästäjien tulokset.
                 </p>
-                <div className="inline-block p-4 bg-stone-50 rounded-xl border border-stone-100 text-[10px] text-stone-400 font-mono text-left">
-                  Tiedosto: services/leaderboardService.ts<br/>
-                  Aseta: SUPABASE_URL & SUPABASE_ANON_KEY
-                </div>
               </div>
             ) : loadingGlobal ? (
               <div className="bg-white p-24 rounded-[3rem] shadow-xl flex flex-col items-center justify-center">
                 <div className="relative">
                   <div className="w-16 h-16 border-4 border-emerald-100 border-t-emerald-800 rounded-full animate-spin"></div>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-xs">🦌</span>
+                    <span className="text-base">🦌</span>
                   </div>
                 </div>
                 <p className="mt-6 text-stone-400 font-black uppercase tracking-widest text-[10px]">Päivitetään maailmanlistaa...</p>
@@ -157,8 +154,8 @@ const Leaderboard: React.FC<Props> = ({ onBack }) => {
               <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-stone-100">
                  <div className="bg-stone-900 px-10 py-8 text-white flex items-center justify-between">
                     <div>
-                      <h3 className="text-xl font-bold font-serif uppercase tracking-widest">Maailman Top 10</h3>
-                      <p className="text-stone-400 text-[10px] mt-1 uppercase tracking-widest font-bold">Kaikki pelaajat kategoriassa: {globalType}</p>
+                      <h3 className="text-xl font-black uppercase tracking-widest">Maailman Top 10</h3>
+                      <p className="text-stone-400 text-[10px] mt-1 uppercase tracking-widest font-bold">Laji: {globalType === 'matching' ? 'Yhdistely' : globalType === 'exam' ? 'Koe' : 'Pikatunnistus'}</p>
                     </div>
                     <span className="text-3xl">🌍</span>
                 </div>

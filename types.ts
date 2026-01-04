@@ -53,13 +53,24 @@ export interface Species {
   commonsCategory?: string;
 }
 
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  unlockedAt?: number;
+}
+
 export interface UserProfile {
   nickname: string;
   createdAt: number;
   totalPoints: number;
+  level: number;
+  achievements: Achievement[];
   records: {
     exam: number;
     matching: number;
     speed: number;
   };
+  groupStats: Record<string, { correct: number; total: number }>;
 }
