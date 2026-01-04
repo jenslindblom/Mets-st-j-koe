@@ -129,9 +129,9 @@ async function fetchCategoryFiles(categoryTitleRaw: string): Promise<string[]> {
       .map(x => x.title);
 
     // TÄRKEÄ PÄÄTÖS:
-    // Palauta vain “hyvät”. Jos suodatus tappoi kaiken, palauta tyhjä listä,
-    // jotta peleissä mennään hallittuun placeholderiin, eikä lipsahdeta karttoihin.
-    return filtered;
+    // Jos suodatus tappaa kaiken, pudotaan takaisin Commonsin raw-listaan,
+    // jotta kuvat eivät katoa kokonaan.
+    return filtered.length > 0 ? filtered : titles;
   })();
 
   categoryCache.set(categoryTitle, promise);
@@ -147,8 +147,10 @@ export async function resolveSpeciesImages(
   // 1) manuaalinen ohitus, jos images[] annettu
   const manual = species.images ?? [];
   if (manual.length > 0) {
-    const primary = manual[lock % manual.length];
-    const secondary = manual.length > 1 ? manual[(lock + 1) % manual.length] : undefined;
+    const primary = manual[lock % manual.length].replace('/wiki/Special:FilePath/', '/wiki/Special:Redirect/file/');
+    const secondary = manual.length > 1
+      ? manual[(lock + 1) % manual.length].replace('/wiki/Special:FilePath/', '/wiki/Special:Redirect/file/')
+      : undefined;
     return { imageUrl: primary, fallbackImageUrl: secondary };
   }
 
